@@ -1,0 +1,310 @@
+generator client {
+  provider = "prisma-client"
+  output   = "./generated/prisma"
+}
+
+datasource db {
+ provider = "postgresql"
+}
+
+enum Theme {
+  ORGANIZATIONAL
+  PEOPLE
+  PHYSICAL
+  TECHNOLOGICAL
+}
+
+enum AssessmentPhase {
+  INHERENT
+  RESIDUAL
+}
+
+enum TreatmentOption {
+  MODIFY
+  RETAIN
+  AVOID
+  SHARE
+}
+
+enum AssetCategory {
+  INFORMATION
+  SOFTWARE
+  HARDWARE
+  SERVICE
+  PEOPLE
+  FACILITY
+}
+
+enum Applicability {
+  APPLICABLE
+  EXCLUDED
+}
+
+enum ControlStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  IMPLEMENTED
+  VERIFIED
+}
+
+enum DocumentStatus {
+  DRAFT
+  IN_REVIEW
+  APPROVED
+  RETIRED
+}
+
+enum NonconformityState {
+  OPEN
+  IN_PROGRESS
+  CLOSED
+}
+
+enum SecurityEventSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum SecurityEventType {
+  LOGIN_RATE_LIMIT_EXCEEDED
+  REFRESH_RATE_LIMIT_EXCEEDED
+  API_RATE_LIMIT_EXCEEDED
+  GLOBAL_RATE_LIMIT_EXCEEDED
+}
+
+model User {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  ownedRisks            Risk[]             @relation("RiskOwner")
+  ownedAssets           Asset[]            @relation("AssetOwner")
+  ownedControls         Control[]          @relation("ControlOwner")
+  ownedDocuments        Document[]         @relation("DocumentOwner")
+  uploadedDocuments     Document[]         @relation("DocumentUploader")
+  raisedNonconformities Nonconformity[]    @relation("NonconformityRaiser")
+  assignedActions       CorrectiveAction[]
+  comments              Comment[]
+  auditEntries          AuditEntry[]
+
+  @@map("users")
+}
+
+model Risk {
+  id          String   @id @default(uuid()) @db.Uuid
+  reference   String   @unique
+  title       String
+  description String
+  theme       Theme
+  ownerId     String?  @map("owner_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  owner       User?            @relation("RiskOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  assessments RiskAssessment[]
+  treatments  Treatment[]
+  assets      Asset[]          @relation("RiskAssets")
+  controls    Control[]        @relation("RiskControls")
+  comments    Comment[]
+  documents   Document[]
+
+  @@index([theme])
+  @@index([ownerId])
+  @@map("risks")
+}
+
+model RiskAssessment {
+  id                  String          @id @default(uuid()) @db.Uuid
+  riskId              String          @map("risk_id") @db.Uuid
+  phase               AssessmentPhase
+  likelihood          Int
+  impact              Int
+  economicImpactMinor BigInt?         @map("economic_impact_minor")
+  assessedAt          DateTime        @default(now()) @map("assessed_at")
+
+  risk Risk @relation(fields: [riskId], references: [id], onDelete: Cascade)
+
+  @@unique([riskId, phase])
+  @@map("risk_assessments")
+}
+
+model Treatment {
+  id          String          @id @default(uuid()) @db.Uuid
+  riskId      String          @map("risk_id") @db.Uuid
+  option      TreatmentOption
+  action      String
+  plannedDate DateTime?       @map("planned_date")
+  actualDate  DateTime?       @map("actual_date")
+  note        String?
+  createdAt   DateTime        @default(now()) @map("created_at")
+
+  risk Risk @relation(fields: [riskId], references: [id], onDelete: Cascade)
+
+  @@index([riskId])
+  @@map("treatments")
+}
+
+model Asset {
+  id             String        @id @default(uuid()) @db.Uuid
+  reference      String        @unique
+  name           String
+  description    String?
+  category       AssetCategory
+  theme          Theme
+  ownerId        String?       @map("owner_id") @db.Uuid
+  classification String?
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+
+  owner User?  @relation("AssetOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  risks Risk[] @relation("RiskAssets")
+
+  @@index([category])
+  @@map("assets")
+}
+
+model Control {
+  id             String        @id @default(uuid()) @db.Uuid
+  reference      String        @unique
+  title          String
+  purpose        String
+  theme          Theme
+  applicability  Applicability
+  justification  String
+  status         ControlStatus
+  ownerId        String?       @map("owner_id") @db.Uuid
+  implementation String?       @map("implementation")
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+
+  owner     User?      @relation("ControlOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  risks     Risk[]     @relation("RiskControls")
+  documents Document[]
+
+  @@index([theme])
+  @@index([applicability])
+  @@map("controls")
+}
+
+model Nonconformity {
+  id          String             @id @default(uuid()) @db.Uuid
+  reference   String             @unique
+  title       String
+  description String
+  theme       Theme
+  state       NonconformityState
+  raisedById  String?            @map("raised_by_id") @db.Uuid
+  raisedAt    DateTime           @default(now()) @map("raised_at")
+  closedAt    DateTime?          @map("closed_at")
+  createdAt   DateTime           @default(now()) @map("created_at")
+  updatedAt   DateTime           @updatedAt @map("updated_at")
+
+  raisedBy User?              @relation("NonconformityRaiser", fields: [raisedById], references: [id], onDelete: SetNull)
+  actions  CorrectiveAction[]
+  comments Comment[]
+
+  @@index([state])
+  @@map("nonconformities")
+}
+
+model CorrectiveAction {
+  id              String    @id @default(uuid()) @db.Uuid
+  nonconformityId String    @map("nonconformity_id") @db.Uuid
+  description     String
+  rootCause       String?   @map("root_cause")
+  assignedToId    String?   @map("assigned_to_id") @db.Uuid
+  dueDate         DateTime? @map("due_date")
+  completedAt     DateTime? @map("completed_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  nonconformity Nonconformity @relation(fields: [nonconformityId], references: [id], onDelete: Cascade)
+  assignedTo    User?         @relation(fields: [assignedToId], references: [id], onDelete: SetNull)
+
+  @@index([nonconformityId])
+  @@map("corrective_actions")
+}
+
+model Document {
+  id           String         @id @default(uuid()) @db.Uuid
+  reference    String         @unique
+  title        String
+  version      String
+  status       DocumentStatus
+  ownerId      String?        @map("owner_id") @db.Uuid
+  approvedAt   DateTime?      @map("approved_at")
+  nextReviewAt DateTime?      @map("next_review_at")
+  storageKey   String         @map("storage_key")
+  mimeType     String         @map("mime_type")
+  sizeBytes    Int            @map("size_bytes")
+  uploadedById String?        @map("uploaded_by_id") @db.Uuid
+  riskId       String?        @map("risk_id") @db.Uuid
+  controlId    String?        @map("control_id") @db.Uuid
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @updatedAt @map("updated_at")
+
+  owner      User?    @relation("DocumentOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  uploadedBy User?    @relation("DocumentUploader", fields: [uploadedById], references: [id], onDelete: SetNull)
+  risk       Risk?    @relation(fields: [riskId], references: [id], onDelete: SetNull)
+  control    Control? @relation(fields: [controlId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([nextReviewAt])
+  @@map("documents")
+}
+
+model Comment {
+  id              String   @id @default(uuid()) @db.Uuid
+  authorId        String   @map("author_id") @db.Uuid
+  body            String
+  riskId          String?  @map("risk_id") @db.Uuid
+  nonconformityId String?  @map("nonconformity_id") @db.Uuid
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  author        User           @relation(fields: [authorId], references: [id], onDelete: Restrict)
+  risk          Risk?          @relation(fields: [riskId], references: [id], onDelete: Cascade)
+  nonconformity Nonconformity? @relation(fields: [nonconformityId], references: [id], onDelete: Cascade)
+
+  @@index([riskId])
+  @@index([nonconformityId])
+  @@map("comments")
+}
+
+model AuditEntry {
+  id           String   @id @default(uuid()) @db.Uuid
+  tableName    String   @map("table_name")
+  recordId     String   @map("record_id") @db.Uuid
+  changedBy    String   @map("changed_by") @db.Uuid
+  fieldName    String   @map("field_name")
+  oldValueHash String?  @map("old_value_hash")
+  newValueHash String?  @map("new_value_hash")
+  ipAddress    String?  @map("ip_address")
+  userAgent    String?  @map("user_agent")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [changedBy], references: [id], onDelete: Restrict)
+
+  @@index([tableName, recordId])
+  @@index([changedBy])
+  @@map("audit_entries")
+}
+
+model SecurityEvent {
+  id        String                @id @default(uuid()) @db.Uuid
+  eventType SecurityEventType     @map("event_type")
+  severity  SecurityEventSeverity
+  userId    String?               @map("user_id") @db.Uuid
+  ipAddress String?               @map("ip_address")
+  userAgent String?               @map("user_agent")
+  path      String?
+  method    String?
+  message   String
+  createdAt DateTime              @default(now()) @map("created_at")
+
+  @@index([eventType])
+  @@index([severity])
+  @@index([createdAt])
+  @@map("security_events")
+}
