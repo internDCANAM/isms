@@ -1,0 +1,338 @@
+/* Controls page */
+
+.controls-page {
+  display: grid;
+  gap: 1.4rem;
+  width: min(100% - 2rem, 90rem);
+  margin-inline: auto;
+  padding-block: 2rem;
+  color: #17324d;
+}
+
+.controls-header {
+  padding: 1.6rem;
+  background: linear-gradient(120deg, #d9f7ff, #eee5ff);
+  border-radius: 1rem;
+}
+
+.controls-header h1 {
+  margin: 0.3rem 0;
+  color: #123968;
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+}
+
+.controls-header p {
+  margin: 0;
+  color: #456581;
+}
+
+.controls-eyebrow {
+  color: #087ca7 !important;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* Summary cards */
+
+.controls-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.control-summary-card {
+  display: grid;
+  gap: 0.75rem;
+  min-height: 7rem;
+  padding: 1.1rem;
+  border: 1px solid rgb(20 70 110 / 10%);
+  border-radius: 0.9rem;
+  box-shadow: 0 0.3rem 0.8rem rgb(32 66 97 / 8%);
+}
+
+.control-summary-card span {
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.control-summary-card strong {
+  align-self: end;
+  font-size: 2rem;
+}
+
+.control-summary-card--total {
+  color: #07549b;
+  background: #d9edff;
+}
+
+.control-summary-card--applicable {
+  color: #006f67;
+  background: #cdf7f1;
+}
+
+.control-summary-card--implemented {
+  color: #725000;
+  background: #fff1bd;
+}
+
+.control-summary-card--verified {
+  color: #5632a8;
+  background: #e9ddff;
+}
+
+/* Register and filters */
+
+.controls-register {
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid #d5e1ec;
+  border-radius: 1rem;
+  box-shadow: 0 0.35rem 1rem rgb(25 60 90 / 8%);
+}
+
+.controls-filters {
+  display: grid;
+  grid-template-columns: minmax(16rem, 1.4fr) repeat(3, minmax(10rem, 0.7fr));
+  gap: 0.75rem;
+  padding: 1rem;
+  background: #f8fbfe;
+  border-block-end: 1px solid #d5e1ec;
+}
+
+.controls-filters input,
+.controls-filters select {
+  width: 100%;
+  min-height: 2.8rem;
+  padding: 0.65rem 0.8rem;
+  color: #17324d;
+  background: #fff;
+  border: 1px solid #bfd0df;
+  border-radius: 0.55rem;
+  font: inherit;
+}
+
+.controls-filters input:focus,
+.controls-filters select:focus {
+  border-color: #1687af;
+  outline: 3px solid rgb(22 135 175 / 15%);
+}
+
+.controls-results {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.8rem 1rem;
+  color: #54708a;
+  font-size: 0.88rem;
+}
+
+.controls-clear {
+  padding: 0;
+  color: #087ca7;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+}
+
+.controls-clear:hover {
+  color: #5732b5;
+  text-decoration: underline;
+}
+
+/* Table */
+
+.controls-table-scroll {
+  overflow-x: auto;
+}
+
+.controls-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: start;
+}
+
+.controls-table th,
+.controls-table td {
+  padding: 0.9rem 1rem;
+  border-block-start: 1px solid #dce6ef;
+  text-align: start;
+  vertical-align: middle;
+}
+
+.controls-table th {
+  color: #3e5c75;
+  background: #eef5fa;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.controls-table tbody tr:hover {
+  background: #f8fcff;
+}
+
+.controls-table td:first-child {
+  color: #087ca7;
+  font-family: var(--font-mono, monospace);
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.controls-table td:nth-child(2) {
+  min-width: 18rem;
+}
+
+.controls-table td:nth-child(2) strong,
+.controls-table td:nth-child(2) small {
+  display: block;
+}
+
+.controls-table td:nth-child(2) strong {
+  color: #17324d;
+}
+
+.controls-table td:nth-child(2) small {
+  margin-block-start: 0.3rem;
+  color: #607a91;
+  line-height: 1.4;
+}
+
+/* Badges */
+
+.applicability-badge,
+.control-status {
+  display: inline-flex;
+  min-width: 6.5rem;
+  justify-content: center;
+  padding: 0.3rem 0.6rem;
+  border: 1px solid;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.applicability-badge--applicable {
+  color: #00685e;
+  background: #d9f7f1;
+  border-color: #9fdfd4;
+}
+
+.applicability-badge--excluded {
+  color: #68727c;
+  background: #f0f2f4;
+  border-color: #d2d7dc;
+}
+
+.control-status--not-started {
+  color: #626d77;
+  background: #edf0f2;
+  border-color: #ced5da;
+}
+
+.control-status--in-progress {
+  color: #9a5800;
+  background: #fff0c7;
+  border-color: #ffd878;
+}
+
+.control-status--implemented {
+  color: #087248;
+  background: #dff7e9;
+  border-color: #a8dfbf;
+}
+
+.control-status--verified {
+  color: #5931a8;
+  background: #eee5ff;
+  border-color: #cbb8f3;
+}
+
+/* Empty state */
+
+.controls-empty {
+  display: grid;
+  gap: 0.5rem;
+  min-height: 12rem;
+  padding: 2rem;
+  place-content: center;
+  text-align: center;
+}
+
+.controls-empty h2,
+.controls-empty p {
+  margin: 0;
+}
+
+.controls-empty p {
+  color: #607a91;
+}
+
+.controls-empty button {
+  justify-self: center;
+  margin-block-start: 0.5rem;
+  padding: 0.6rem 1rem;
+  color: #fff;
+  background: #087ca7;
+  border: 0;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+}
+
+/* Responsive layout */
+
+@media (max-width: 70rem) {
+  .controls-filters {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .controls-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 48rem) {
+  .controls-page {
+    width: min(100% - 1rem, 90rem);
+    padding-block: 1rem;
+  }
+
+  .controls-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .controls-table th:nth-child(3),
+  .controls-table td:nth-child(3),
+  .controls-table th:nth-child(6),
+  .controls-table td:nth-child(6) {
+    display: none;
+  }
+}
+
+@media (max-width: 32rem) {
+  .controls-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .controls-table th,
+  .controls-table td {
+    padding: 0.75rem;
+  }
+
+  .controls-table th:nth-child(4),
+  .controls-table td:nth-child(4),
+  .controls-table th:nth-child(7),
+  .controls-table td:nth-child(7) {
+    display: none;
+  }
+}
