@@ -12,21 +12,29 @@ import {NonconformityDetailPage} from './ui/pages/NonconformityDetail.js';
 import {NonconformityListPage} from './ui/pages/NonconformityList.js';
 import {RiskDetailPage} from './ui/pages/RiskDetail.js';
 import {RiskRegisterPage} from './ui/pages/RiskRegister.js';
+import {AppLayout} from './ui/components/AppLayout.js';
 import './ui/css/index.css';
 
 
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<MainPage />} />
-      <Route path="/risks" element={<RiskRegisterPage />} />
-      <Route path="/risks/:id" element={<RiskDetailPage />} />
-      <Route path="/nonconformities" element={<NonconformityListPage />} />
-      <Route path="/nonconformities/:id" element={<NonconformityDetailPage />} />
-      <Route path="/assets" element={<AssetInventoryPage />} />
-      <Route path="/controls" element={<ControlsPage />} />
-      <Route path="/documents" element={<DocumentsPage />} />
       <Route path="/login" element={<LoginPage />} />
+
+      <Route element={<AppLayout />}>
+        <Route index element={<MainPage />} />
+        <Route path="/risks" element={<RiskRegisterPage />} />
+        <Route path="/risks/:id" element={<RiskDetailPage />} />
+        <Route path="/nonconformities" element={<NonconformityListPage />} />
+        <Route
+          path="/nonconformities/:id"
+          element={<NonconformityDetailPage />}
+        />
+        <Route path="/assets" element={<AssetInventoryPage />} />
+        <Route path="/controls" element={<ControlsPage />} />
+        <Route path="/documents" element={<DocumentsPage />} />
+      </Route>
+
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
