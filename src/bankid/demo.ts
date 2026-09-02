@@ -1,4 +1,5 @@
 import {faker} from '@faker-js/faker/locale/sv';
+import {armKind} from '../api/mod.js';
 import {collectStatus, failedHintCode, pendingHintCode} from './protocol.js';
 import type {CollectResponse, CompletionData, OrderResponse} from './protocol.js';
 import type {BankIdClient} from './client.js';
@@ -28,21 +29,34 @@ const dataset = [
 ] as const;
 
 export const demoEndUserIp = faker.internet.ipv4();
-const failHash = '#fail';
+export const demoOrderTtlMs = 30_000;
+export const demoPersonnummerTable: readonly string[] = dataset;
+
+export type DemoArm =
+  | { kind: typeof armKind.pending }
+  | { kind: typeof armKind.complete; personnummer: string; name: string }
+  | { kind: typeof armKind.fail };
+
+export interface DemoClient extends BankIdClient {
+  arm(endUserIp: string, arm: DemoArm): void;
+}
 
 const pending = (orderRef: string, hintCode: string): CollectResponse =>
   ({orderRef, status: collectStatus.pending, hintCode});
 
+const failed = (orderRef: string, hintCode: string): CollectResponse =>
+  ({orderRef, status: collectStatus.failed, hintCode});
+
 interface DemoOrderState {
-  script: CollectResponse[];
+  started: number;
+  script?: CollectResponse[];
   collected: number;
 }
 export function demoPersonnummer(): string { return faker.helpers.arrayElement(dataset); }
 
-export function demoCollect(order: OrderResponse,completion: CompletionData): CollectResponse[] {
+export function demoCollect(order: OrderResponse, completion: CompletionData): CollectResponse[] {
   return [
     pending(order.orderRef, pendingHintCode.outstandingTransaction),
-    pending(order.orderRef, pendingHintCode.userSign),
     pending(order.orderRef, pendingHintCode.userSign),
     {
       orderRef: order.orderRef,
@@ -63,14 +77,6 @@ export function demoCancelled(order: OrderResponse): CollectResponse[] {
   ];
 }
 
-export function demoScript(
-  hash: string,
-  order: OrderResponse,
-  completion: CompletionData
-): CollectResponse[] {
-  return hash === failHash ? demoCancelled(order) : demoCollect(order, completion);
-}
-
 export function demoOrder(): OrderResponse {
   return {
     orderRef:       faker.string.uuid(),
@@ -80,42 +86,63 @@ export function demoOrder(): OrderResponse {
   };
 }
 
-export function demoCompletion(): CompletionData {
-  const givenName = faker.person.firstName();
-  const surname = faker.person.lastName();
+export function demoCompletion(user?: { personnummer: string; name: string }): CompletionData {
+  const givenName = user?.name.split(/\s+/)[0] ?? faker.person.firstName();
+  const surname = user?.name.split(/\s+/).slice(1).join(' ') || faker.person.lastName();
   return {
     user: {
-      personalNumber: demoPersonnummer(),
-      name: `${givenName} ${surname}`,
+      personnummer: user?.personnummer ?? demoPersonnummer(),
+      name: user?.name ?? `${givenName} ${surname}`,
       givenName,
       surname,
     },
-    device: {
-      ipAddress: demoEndUserIp,
-      uhi:       faker.string.alphanumeric({length: 28}),
-    },
+    device: {ipAddress: demoEndUserIp,uhi: faker.string.alphanumeric({length: 28})},
     bankIdIssueDate: `${faker.date.past({years: 5}).toISOString().slice(0, 10)}Z`,
     signature: faker.string.alphanumeric({length: 64}),
     ocspResponse: faker.string.alphanumeric({length: 64}),
   };
 }
 
-export function demoClient(hash = ''): BankIdClient {
+export function demoClient(options: { ttlMs?: number } = {}): DemoClient {
   const orders = new Map<string, DemoOrderState>();
+  const arms = new Map<string, DemoArm>();
+  const ttlMs = options.ttlMs ?? demoOrderTtlMs;
 
-  const open = () => {
-    const order = demoOrder();
-    orders.set(order.orderRef, {script: demoScript(hash, order, demoCompletion()), collected: 0});
-    return Promise.resolve(order);
+  const scriptFor = (order: OrderResponse, arm: DemoArm): CollectResponse[] | undefined => {
+    switch (arm.kind) {
+      case armKind.pending:  return undefined;
+      case armKind.complete: return demoCollect(order, demoCompletion(arm));
+      case armKind.fail:     return demoCancelled(order);
+    }
   };
 
   return {
-    auth: open,
+    arm: (endUserIp, arm) => { arms.set(endUserIp, arm); },
+    auth: ({endUserIp}) => {
+      const order = demoOrder();
+      const arm = arms.get(endUserIp);
+      arms.delete(endUserIp);
+      orders.set(order.orderRef, {
+        started: Date.now(),
+        collected: 0,
+        script: arm ? scriptFor(order, arm) : undefined,
+      });
+      return Promise.resolve(order);
+    },
     collect: ({orderRef}) => {
-      const state = orders.get(orderRef)!;
-      const response = state.script[Math.min(state.collected, state.script.length - 1)]!;
-      state.collected += 1;
-      return Promise.resolve(response);
+      const state = orders.get(orderRef);
+      if (!state) return Promise.resolve(failed(orderRef, failedHintCode.cancelled));
+      if (state.script) {
+        const response = state.script[Math.min(state.collected, state.script.length - 1)]!;
+        state.collected += 1;
+        if (response.status !== collectStatus.pending) orders.delete(orderRef);
+        return Promise.resolve(response);
+      }
+      if (Date.now() - state.started >= ttlMs) {
+        orders.delete(orderRef);
+        return Promise.resolve(failed(orderRef, failedHintCode.expiredTransaction));
+      }
+      return Promise.resolve(pending(orderRef, pendingHintCode.outstandingTransaction));
     },
     cancel: ({orderRef}) => { orders.delete(orderRef); return Promise.resolve(); }
   };

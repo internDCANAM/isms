@@ -7,6 +7,8 @@
   "engines"        : {"node": ">=24"},
   "scripts"        : {
     "dev"        : "tsx watch src/main.ts",
+    "dev:mod"    : "tsx watch src/main.ts --mod",
+    "dev:prod"   : "tsx watch src/main.ts --prod",
     "dev:client" : "vite",
     "build"      : "vite build",
     "typecheck"  : "tsc --noEmit",
@@ -57,6 +59,7 @@
     "typescript"               : "^6.0.3",
     "typescript-eslint"        : "^8.67.0",
     "vite"                     : "^8.2.1",
+    "vite-plugin-mkcert"       : "^2.1.0",
     "vitest"                   : "^4.1.10"
   },
   "overrides"      : {"esbuild": "^0.28.1", "form-data": "^4.0.6", "qs": "^6.15.2", "deepmerge-ts": "^8.0.2"},

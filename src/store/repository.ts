@@ -41,6 +41,17 @@ export type AssetRepository = ReadRepository<HydratedAsset>;
 export type ControlRepository = ReadRepository<HydratedControl>;
 export type DocumentRepository = ReadRepository<HydratedDocument>;
 
+export interface UserRecord {
+  id: string;
+  name: string;
+  personnummer: string | null;
+}
+
+export interface UserRepository {
+  findBypersonnummer(personnummer: string): Promise<UserRecord | null>;
+  upsertBypersonnummer(input: { personnummer: string; name: string }): Promise<UserRecord>;
+}
+
 export interface Repositories {
   risks: RiskRepository;
   assets: AssetRepository;
@@ -49,6 +60,7 @@ export interface Repositories {
   documents: DocumentRepository;
   comments: CommentRepository;
   audit: AuditRepository;
+  users: UserRepository;
 }
 
 
@@ -176,7 +188,7 @@ export function prismaRepositories(prisma: PrismaClient): Repositories {
             assets: {connect: input.assetIds.map((id) => ({id}))},
             controls: {connect: input.controlIds.map((id) => ({id}))},
           },
-          include: riskInclude,
+          include: riskInclude
         });
         return hydrateRisk(row);
       },
@@ -193,7 +205,7 @@ export function prismaRepositories(prisma: PrismaClient): Repositories {
             controls: patch.controlIds &&
               {set: patch.controlIds.map((controlId) => ({id: controlId}))},
           },
-          include: riskInclude,
+          include: riskInclude
         });
         return hydrateRisk(row);
       },
@@ -214,10 +226,7 @@ export function prismaRepositories(prisma: PrismaClient): Repositories {
           }
         });
       },
-
-      addTreatment(riskId, input) {
-        return prisma.treatment.create({data: {riskId, ...input}});
-      }
+      addTreatment(riskId, input) { return prisma.treatment.create({data: {riskId, ...input}}); }
     },
 
     nonconformities: {
@@ -228,7 +237,7 @@ export function prismaRepositories(prisma: PrismaClient): Repositories {
             include: nonconformityInclude,
             orderBy: {reference: 'asc'},
           }),
-          prisma.nonconformity.count(),
+          prisma.nonconformity.count()
         ]);
         return {rows: rows.map(hydrateNonconformity), total};
       },
@@ -258,9 +267,7 @@ export function prismaRepositories(prisma: PrismaClient): Repositories {
         return hydrateNonconformity(row);
       },
 
-      async remove(id) {
-        await prisma.nonconformity.delete({where: {id}});
-      },
+      async remove(id) { await prisma.nonconformity.delete({where: {id}}); },
 
       async addAction(nonconformityId, input) {
         const row = await prisma.correctiveAction.create({
@@ -279,7 +286,7 @@ export function prismaRepositories(prisma: PrismaClient): Repositories {
             include: {...ownerName, _count: {select: {risks: true}}},
             orderBy: {reference: 'asc'},
           }),
-          prisma.asset.count(),
+          prisma.asset.count()
         ]);
         return {
           rows: rows.map(({owner, _count, ...asset}) => ({
@@ -287,14 +294,13 @@ export function prismaRepositories(prisma: PrismaClient): Repositories {
             ownerName: owner?.name ?? null,
             riskCount: _count.risks,
           })),
-          total,
+          total
         };
       },
 
       async get(id) {
         const row = await prisma.asset.findUnique({
-          where: {id},
-          include: {...ownerName, _count: {select: {risks: true}}},
+          where: {id}, include: {...ownerName, _count: {select: {risks: true}}}
         });
         if (!row) return null;
         const {owner, _count, ...asset} = row;
@@ -304,13 +310,12 @@ export function prismaRepositories(prisma: PrismaClient): Repositories {
 
     controls: {
       async list(query) {
-        const [rows, total] = await prisma.$transaction([
-          prisma.control.findMany({
-            ...pageArgs(query),
-            include: {...ownerName, _count: {select: {risks: true}}},
-            orderBy: {reference: 'asc'},
-          }),
-          prisma.control.count(),
+        const [rows, total] = await prisma.$transaction([prisma.control.findMany({
+          ...pageArgs(query),
+          include: {...ownerName, _count: {select: {risks: true}}},
+          orderBy: {reference: 'asc'},
+        }),
+        prisma.control.count()
         ]);
         return {
           rows: rows.map(({owner, _count, ...control}) => ({
@@ -318,7 +323,7 @@ export function prismaRepositories(prisma: PrismaClient): Repositories {
             ownerName: owner?.name ?? null,
             riskCount: _count.risks,
           })),
-          total,
+          total
         };
       },
 
@@ -337,11 +342,11 @@ export function prismaRepositories(prisma: PrismaClient): Repositories {
       async list(query) {
         const [rows, total] = await prisma.$transaction([
           prisma.document.findMany({...pageArgs(query), include: ownerName, orderBy: {reference: 'asc'}}),
-          prisma.document.count(),
+          prisma.document.count()
         ]);
         return {
           rows: rows.map(({owner, ...document}) => ({...document, ownerName: owner?.name ?? null})),
-          total,
+          total
         };
       },
 
@@ -370,7 +375,7 @@ export function prismaRepositories(prisma: PrismaClient): Repositories {
             body: input.body,
             ...commentParentWhere(input.parent, input.parentId),
           },
-          include: {author: {select: {name: true}}},
+          include: {author: {select: {name: true}}}
         });
         const {author, ...comment} = row;
         return {...comment, authorName: author.name};
@@ -385,7 +390,7 @@ export function prismaRepositories(prisma: PrismaClient): Repositories {
             include: {user: {select: {name: true}}},
             orderBy: {createdAt: 'desc'},
           }),
-          prisma.auditEntry.count(),
+          prisma.auditEntry.count()
         ]);
         return {rows: rows.map(hydrateAudit), total};
       },
@@ -399,13 +404,8 @@ export function prismaRepositories(prisma: PrismaClient): Repositories {
         return rows.map(hydrateAudit);
       },
 
-      async write(entry) {
-        await prisma.auditEntry.create({data: entry});
-      },
-
-      async recordSecurityEvent(event) {
-        await prisma.securityEvent.create({data: event});
-      },
+      async write(entry) { await prisma.auditEntry.create({data: entry}); },
+      async recordSecurityEvent(event) { await prisma.securityEvent.create({data: event}); },
 
       async listSecurityEvents(query) {
         const [rows, total] = await prisma.$transaction([
@@ -413,6 +413,23 @@ export function prismaRepositories(prisma: PrismaClient): Repositories {
           prisma.securityEvent.count(),
         ]);
         return {rows, total};
+      }
+    },
+
+    users: {
+      async findBypersonnummer(personnummer) {
+        return prisma.user.findUnique({
+          where: {personnummer},
+          select: {id: true, name: true, personnummer: true},
+        });
+      },
+      async upsertBypersonnummer({personnummer, name}) {
+        return prisma.user.upsert({
+          where: {personnummer},
+          create: {personnummer, name},
+          update: {name},
+          select: {id: true, name: true, personnummer: true},
+        });
       }
     }
   };

@@ -1,5 +1,5 @@
 import {Router, type Request, type RequestHandler, type Response} from 'express';
-import {asyncHandler} from './errors.js';
+import {asyncHandler, dropped} from './errors.js';
 
 export const HttpMethod = {
   GET:    'get',
@@ -33,6 +33,7 @@ export interface RouteTable<TReq extends Request> {
 function respond<TReq extends Request>(route: Route<TReq>): RequestHandler {
   return asyncHandler<TReq>(async (req, res) => {
     const body = await route.handler(req, res);
+    if (dropped(res)) return;
     if (route.status === HttpStatus.NO_CONTENT) {
       res.status(route.status).end();
       return;

@@ -1,4 +1,4 @@
-import type {Router} from 'express';
+import type {Request, Response, Router} from 'express';
 import {notFound} from '../http/errors.js';
 import {pathOrderRef, requireIp} from '../http/request.js';
 import {createRouter, HttpMethod, HttpStatus} from '../http/table.js';
@@ -10,24 +10,31 @@ import type {BankIdService} from '../services/bankid.js';
  * `start` opens an order, `poll` advances it one step, `cancel` abandons it,
  * which the generator's scope guard turns into a cancel at the relying party.
  */
-export function bankIdRouter(service: BankIdService, limiters: RateLimiters): Router {
+export function bankIdRouter(
+  service: BankIdService,
+  limiters: RateLimiters,
+  onIdentified: (req: Request, res: Response, userId: string) => Promise<void>
+): Router {
   return createRouter({
-    middleware: [limiters.login],
+    middleware: [],
     routes: [
       {
         method: HttpMethod.POST,
         path: '/start',
         status: HttpStatus.CREATED,
+        middleware: [limiters.login],
         handler: (req) => service.start({endUserIp: requireIp(req)}),
       },
       {
         method: HttpMethod.GET,
         path: '/:orderRef',
         status: HttpStatus.OK,
-        handler: async (req) => {
-          const view = await service.poll(pathOrderRef(req));
-          if (!view) throw notFound(req);
-          return view;
+        handler: async (req, res) => {
+          const result = await service.poll(pathOrderRef(req));
+          if (!result) throw notFound(req);
+          const userId = result.userId;
+          if (userId) await onIdentified(req, res, userId);
+          return result.view;
         }
       },
       {

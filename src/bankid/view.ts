@@ -1,6 +1,5 @@
 import {qrSvg, qrSvgDefaults} from '../lib/qr.js';
-import {autoStartUrl} from './protocol.js';
-import {loginPhase} from './flow.js';
+import {autoStartUrl, loginPhase} from './protocol.js';
 import type {FailedHintCode, PendingHintCode} from './protocol.js';
 import type {LoginState} from './flow.js';
 
@@ -17,6 +16,7 @@ export const rfa = {
   rfa21: 'An identification or signing is in progress.',
   rfa22: 'Something went wrong. Please try again.',
   rfa23: 'Take a photo of, and scan, your ID document with the BankID app.',
+  noAccount: 'No account matches this BankID.',
 } as const;
 export type Rfa = (typeof rfa)[keyof typeof rfa];
 
@@ -46,13 +46,14 @@ export function failedMessage(hint: FailedHintCode | undefined): Rfa | undefined
 }
 
 export interface LoginView {
+  phase:   LoginState['phase'];
   message: Rfa    | undefined;
   code:    string | undefined;
   launch:  string | undefined;
   name:    string | undefined;
 }
 
-const empty: LoginView = {
+const empty = {
   message: undefined,
   code:    undefined,
   launch:  undefined,
@@ -62,17 +63,18 @@ const empty: LoginView = {
 export function loginView(state: LoginState): LoginView {
   switch (state.phase) {
     case loginPhase.start:
-      return {...empty, message: rfa.rfa13};
+      return {...empty, phase: state.phase, message: rfa.rfa13};
     case loginPhase.qr:
       return {
+        phase:   state.phase,
         message: pendingMessage(state.hint) ?? rfa.rfa21,
         code:    qrSvg(state.payload, qrSvgDefaults),
         launch:  autoStartUrl(state.autoStartToken),
         name:    undefined,
       };
     case loginPhase.complete:
-      return {...empty, name: state.completion.user.name};
+      return {...empty, phase: state.phase, name: state.completion.user.name};
     case loginPhase.failed:
-      return {...empty, message: failedMessage(state.hint) ?? rfa.rfa22};
+      return {...empty, phase: state.phase, message: failedMessage(state.hint) ?? rfa.rfa22};
   }
 }

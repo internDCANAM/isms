@@ -1,4 +1,4 @@
-import {collectStatus, failedHint, pendingHint} from './protocol.js';
+import {collectStatus, failedHint, loginPhase, pendingHint} from './protocol.js';
 import {qrPayload, qrTime} from './qr.js';
 import {scopeGuard} from '../lib/scope-guard.js';
 import type {AuthRequest, CompletionData, FailedHintCode, PendingHintCode} from './protocol.js';
@@ -20,13 +20,6 @@ export const bankIdCadence: LoginCadence = {
   qrIntervalMs: 1000,
   collectIntervalMs: 2000,
 };
-
-export const loginPhase = {
-  start:    'start',
-  qr:       'qr',
-  complete: 'complete',
-  failed:   'failed',
-} as const;
 
 export type LoginState =
   | { phase: typeof loginPhase.start }

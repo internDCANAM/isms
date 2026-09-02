@@ -1,5 +1,6 @@
 :root {
   color-scheme: light dark;
+  --shadow: #0000003a;
 }
 
 :root, [data-scheme='paper'] {
@@ -7,7 +8,8 @@
   --color-surface:      #f2efe9;
   --color-border:       #e6e1d7;
   --color-text:         #1c1a16;
-  --color-text-muted:   #6f6b64; }
+  --color-text-muted:   #6f6b64;
+  --color-discrete:     #fdfdfd; }
 [data-scheme='sea'] {
   --color-bg:           #eef3f3;
   --color-surface:      #fff;
@@ -27,7 +29,8 @@
     --color-surface:    #1c1a16;
     --color-border:     #3a362f;
     --color-text:       #f2efe9;
-    --color-text-muted: #a39e94; }
+    --color-text-muted: #a39e94;
+    --color-discrete:   #161511; }
   [data-scheme='sea'] {
     --color-bg:         #0c181c;
     --color-surface:    #122830;

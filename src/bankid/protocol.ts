@@ -1,3 +1,11 @@
+export const loginPhase = {
+  start:    'start',
+  qr:       'qr',
+  complete: 'complete',
+  failed:   'failed',
+} as const;
+export type LoginPhase = (typeof loginPhase)[keyof typeof loginPhase];
+
 export const collectStatus = {
   pending:  'pending',
   failed:   'failed',
@@ -20,7 +28,7 @@ export interface CollectRequest { orderRef: string; }
 export interface CancelRequest  { orderRef: string; }
 
 export interface CompletionUser {
-  personalNumber: string;
+  personnummer: string;
   name: string;
   givenName: string;
   surname: string;

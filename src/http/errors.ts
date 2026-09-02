@@ -30,6 +30,8 @@ export const forbidden = (req: Request, message?: string) =>
 export const notFound = (req: Request, message?: string) =>
   httpError(404, ErrorCode.NOT_FOUND, message ?? req.t.http.notFound);
 
+export function dropped(res: Response): boolean { return res.destroyed || res.writableEnded; }
+
 function isHttpError(err: unknown): err is HttpError {
   return err instanceof Error && 'statusCode' in err && 'code' in err;
 }
@@ -50,9 +52,8 @@ function clientErrorStatus(err: unknown): number | null {
  */
 export const asyncHandler = <TReq extends Request = Request>(
   fn: (req: TReq, res: Response, next: NextFunction) => Promise<unknown>
-): RequestHandler => (req, res, next) => {
-  Promise.resolve(fn(req as TReq, res, next)).catch(next);
-};
+): RequestHandler => (req, res, next) =>
+  fn(req as TReq, res, next).catch(next);
 
 function toBody(error: HttpError): ApiErrorBody {
   return {
@@ -81,7 +82,10 @@ export function errorHandler(invalidCsrfTokenError: Error): ErrorRequestHandler 
         error = httpError(status, ErrorCode.VALIDATION_ERROR, req.t.http.badRequest);
       }
     }
-    if (isHttpError(error)) { res.status(error.statusCode).json(toBody(error)); return; }
+    if (isHttpError(error)) {
+      if (!dropped(res)) res.status(error.statusCode).json(toBody(error));
+      return;
+    }
 
     logger.error('', {
       path: req.path,
@@ -90,6 +94,7 @@ export function errorHandler(invalidCsrfTokenError: Error): ErrorRequestHandler 
       stack: err instanceof Error ? err.stack : undefined,
     });
 
+    if (dropped(res)) return;
     res.status(500).json({
       error: req.t.http.internalError,
       code: ErrorCode.INTERNAL_ERROR,

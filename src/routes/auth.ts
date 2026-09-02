@@ -15,29 +15,27 @@ export interface AuthDeps {
   tokens: TokenConfig;
 }
 
-export function authRouter(deps: AuthDeps, limiters: RateLimiters, csrf: Csrf): Router {
+export async function startSession(
+  deps: AuthDeps,
+  csrf: Csrf,
+  req: Request,
+  res: Response,
+  userId: string
+): Promise<void> {
   const {sessions, tokens} = deps;
   const maxAge = tokens.refreshTtlSeconds * 1000;
-  const cookieOptions = (path: string) => ({
-    httpOnly: true,
-    secure: false,
-    sameSite: 'lax' as const,
-    path,
-    maxAge,
-  });
+  const cookieOptions = (path: string) => (
+    {httpOnly: true, secure: false, sameSite: 'lax' as const, path, maxAge}
+  );
+  const {token, tokenId} = signRefreshToken(userId, tokens);
+  await sessions.store(userId, tokenId, tokens.refreshTtlSeconds);
+  res.cookie(REFRESH_COOKIE_NAME, token, cookieOptions(REFRESH_COOKIE_PATH));
+  res.cookie(SESSION_COOKIE_NAME, tokenId, cookieOptions(SESSION_COOKIE_PATH));
+  csrf.issueToken(req, res, tokenId);
+}
 
-  /**
-   * Issues a refresh token, records it as valid, and hands it to the browser as
-   * an httpOnly cookie — never in a response body, so page scripts cannot read
-   * it back out. Also (re)mints this session's CSRF cookie.
-   */
-  async function startSession(req: Request, res: Response, userId: string): Promise<void> {
-    const {token, tokenId} = signRefreshToken(userId, tokens);
-    await sessions.store(userId, tokenId, tokens.refreshTtlSeconds);
-    res.cookie(REFRESH_COOKIE_NAME, token, cookieOptions(REFRESH_COOKIE_PATH));
-    res.cookie(SESSION_COOKIE_NAME, tokenId, cookieOptions(SESSION_COOKIE_PATH));
-    csrf.issueToken(req, res, tokenId);
-  }
+export function authRouter(deps: AuthDeps, limiters: RateLimiters, csrf: Csrf): Router {
+  const {sessions, tokens} = deps;
 
   /**
    * Trades the refresh cookie for a new access token, rotating the cookie: the
@@ -50,9 +48,7 @@ export function authRouter(deps: AuthDeps, limiters: RateLimiters, csrf: Csrf): 
     let payload;
     try {
       payload = verifyRefreshToken(token, tokens.refreshSecret);
-    } catch {
-      throw unauthorized(req, req.t.auth.refreshTokenInvalid);
-    }
+    } catch { throw unauthorized(req, req.t.auth.refreshTokenInvalid); }
 
     if (!(await sessions.isValid(payload.userId, payload.tokenId))) {
       await sessions.revokeAll(payload.userId);
@@ -60,12 +56,10 @@ export function authRouter(deps: AuthDeps, limiters: RateLimiters, csrf: Csrf): 
     }
 
     await sessions.revoke(payload.userId, payload.tokenId);
-    await startSession(req, res, payload.userId);
-
+    await startSession(deps, csrf, req, res, payload.userId);
     const locale = resolveLocale(req);
-    return {
-      accessToken: signAccessToken({userId: payload.userId, locale}, tokens),
-    };
+
+    return {accessToken: signAccessToken({userId: payload.userId, locale}, tokens)};
   }
 
   async function logout(req: Request, res: Response): Promise<void> {
