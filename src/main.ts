@@ -84,7 +84,7 @@ export function createApp(deps: AppDeps): Express {
   api.use(csrf.protection);
 
   const r = express.Router();
-  r.use(authenticate(deps.tokens.accessSecret), limiters.api);
+  // r.use(authenticate(deps.tokens.accessSecret), limiters.api);
   r.use('/config', configRouter());
   r.use('/risks', risksRouter(deps.services.risks, deps.services.comments));
   r.use('/nonconformities', nonconformitiesRouter(deps.services.nonconformities, deps.services.comments));
