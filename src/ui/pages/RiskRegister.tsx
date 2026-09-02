@@ -1,4 +1,5 @@
 import {useMemo, useState} from 'react';
+import {useQuery} from '@tanstack/react-query';
 import {Link} from 'react-router-dom';
 import {RiskLevel, Theme} from '../../domain.js';
 import '../css/risk-register.css';
@@ -9,63 +10,35 @@ interface RiskRow {
   title: string;
   theme: Theme;
   ownerName: string | null;
-  inherentLevel: RiskLevel;
+  inherentLevel: RiskLevel | null;
   residualLevel: RiskLevel | null;
   treatmentCount: number;
+  createdAt: string;
 }
 
-const risks: RiskRow[] = [
-  {
-    id: '1',
-    reference: 'R-0001',
-    title: 'Unauthorised access to customer information',
-    theme: Theme.TECHNOLOGICAL,
-    ownerName: 'Emma Lindberg',
-    inherentLevel: RiskLevel.CRITICAL,
-    residualLevel: RiskLevel.MEDIUM,
-    treatmentCount: 3,
-  },
-  {
-    id: '2',
-    reference: 'R-0002',
-    title: 'Phishing attack compromises employee accounts',
-    theme: Theme.PEOPLE,
-    ownerName: 'Johan Berg',
-    inherentLevel: RiskLevel.HIGH,
-    residualLevel: RiskLevel.MEDIUM,
-    treatmentCount: 2,
-  },
-  {
-    id: '3',
-    reference: 'R-0003',
-    title: 'Critical service unavailable after system failure',
-    theme: Theme.TECHNOLOGICAL,
-    ownerName: 'Sara Nilsson',
-    inherentLevel: RiskLevel.HIGH,
-    residualLevel: RiskLevel.LOW,
-    treatmentCount: 4,
-  },
-  {
-    id: '4',
-    reference: 'R-0004',
-    title: 'Supplier does not meet security requirements',
-    theme: Theme.ORGANIZATIONAL,
-    ownerName: 'Klas Andersson',
-    inherentLevel: RiskLevel.MEDIUM,
-    residualLevel: RiskLevel.LOW,
-    treatmentCount: 1,
-  },
-  {
-    id: '5',
-    reference: 'R-0005',
-    title: 'Sensitive documents accessed without permission',
-    theme: Theme.PHYSICAL,
-    ownerName: null,
-    inherentLevel: RiskLevel.MEDIUM,
-    residualLevel: null,
-    treatmentCount: 0,
-  },
-];
+interface RiskResponse {
+  data: RiskRow[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+const emptyRisks: RiskRow[] = [];
+
+async function fetchRisks(): Promise<RiskResponse> {
+  const response = await fetch('/api/v1/risks?page=1&limit=100', {
+    credentials: 'same-origin',
+  });
+
+  if (!response.ok) {
+    throw new Error(`Could not load risks (${response.status}).`);
+  }
+
+  return await response.json() as RiskResponse;
+}
 
 const themeLabels: Record<Theme, string> = {
   [Theme.ORGANIZATIONAL]: 'Organizational',
@@ -94,6 +67,13 @@ function RiskBadge({level}: { level: RiskLevel | null }) {
 }
 
 export function RiskRegisterPage() {
+  const riskQuery = useQuery({
+    queryKey: ['risks'],
+    queryFn: fetchRisks,
+  });
+
+  const risks = riskQuery.data?.data ?? emptyRisks;
+
   const [search, setSearch] = useState('');
   const [selectedTheme, setSelectedTheme] =
     useState<Theme | 'ALL'>('ALL');
@@ -122,12 +102,41 @@ export function RiskRegisterPage() {
 
       return matchesSearch && matchesTheme && matchesLevel;
     });
-  }, [search, selectedLevel, selectedTheme]);
+  }, [risks, search, selectedLevel, selectedTheme]);
 
   function clearFilters() {
     setSearch('');
     setSelectedTheme('ALL');
     setSelectedLevel('ALL');
+  }
+
+  if (riskQuery.isPending) {
+    return (
+      <main className="risk-page">
+        <div className="empty-state" role="status">
+          <h1>Loading risk register…</h1>
+          <p className="note">Please wait while the risks are loaded.</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (riskQuery.isError) {
+    return (
+      <main className="risk-page">
+        <div className="empty-state" role="alert">
+          <h1>Could not load risks</h1>
+          <p className="note">{riskQuery.error.message}</p>
+          <button
+            className="button"
+            type="button"
+            onClick={() => void riskQuery.refetch()}
+          >
+            Try again
+          </button>
+        </div>
+      </main>
+    );
   }
 
   return (
@@ -236,9 +245,14 @@ export function RiskRegisterPage() {
 
         {filteredRisks.length === 0 ? (
           <div className="empty-state">
-            <h2>No matching risks</h2>
+            <h2>
+              {risks.length === 0 ? 'No risks registered' : 'No matching risks'}
+            </h2>
+
             <p className="note">
-              Try another search or clear the selected filters.
+              {risks.length === 0
+                ? 'The database does not contain any risks yet.'
+                : 'Try another search or clear the selected filters.'}
             </p>
           </div>
         ) : (
