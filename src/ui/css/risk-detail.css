@@ -410,4 +410,10 @@
   .risk-information > div:first-child {
     border-top: 0;
   }
+
+  .detail-edit-button:disabled,
+  .detail-section__heading button:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
 }

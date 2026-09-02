@@ -1,4 +1,5 @@
 import {useMemo, useState} from 'react';
+import {useQuery} from '@tanstack/react-query';
 import {Link} from 'react-router-dom';
 import {NonconformityState, Theme} from '../../domain.js';
 import '../css/nonconformity-list.css';
@@ -15,63 +16,34 @@ interface NonconformityRow {
   actionCount: number;
 }
 
-const nonconformities: NonconformityRow[] = [
-  {
-    id: '1',
-    reference: 'NC-0001',
-    title: 'Access review was not completed on time',
-    theme: Theme.ORGANIZATIONAL,
-    state: NonconformityState.OPEN,
-    raisedByName: 'Emma Lindberg',
-    raisedAt: '2026-08-10',
-    closedAt: null,
-    actionCount: 2,
-  },
-  {
-    id: '2',
-    reference: 'NC-0002',
-    title: 'Backup restoration test was unsuccessful',
-    theme: Theme.TECHNOLOGICAL,
-    state: NonconformityState.IN_PROGRESS,
-    raisedByName: 'Johan Berg',
-    raisedAt: '2026-08-14',
-    closedAt: null,
-    actionCount: 3,
-  },
-  {
-    id: '3',
-    reference: 'NC-0003',
-    title: 'Security training records were incomplete',
-    theme: Theme.PEOPLE,
-    state: NonconformityState.IN_PROGRESS,
-    raisedByName: 'Sara Nilsson',
-    raisedAt: '2026-08-18',
-    closedAt: null,
-    actionCount: 2,
-  },
-  {
-    id: '4',
-    reference: 'NC-0004',
-    title: 'Visitor log was not maintained correctly',
-    theme: Theme.PHYSICAL,
-    state: NonconformityState.CLOSED,
-    raisedByName: 'Dennis Karlsson',
-    raisedAt: '2026-07-20',
-    closedAt: '2026-08-12',
-    actionCount: 1,
-  },
-  {
-    id: '5',
-    reference: 'NC-0005',
-    title: 'Supplier security review was missing',
-    theme: Theme.ORGANIZATIONAL,
-    state: NonconformityState.OPEN,
-    raisedByName: null,
-    raisedAt: '2026-08-22',
-    closedAt: null,
-    actionCount: 0,
-  },
-];
+interface NonconformityResponse {
+  data: NonconformityRow[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+const emptyNonconformities: NonconformityRow[] = [];
+
+async function fetchNonconformities(): Promise<NonconformityResponse> {
+  const response = await fetch(
+    '/api/v1/nonconformities?page=1&limit=100',
+    {credentials: 'same-origin'}
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      `Could not load nonconformities (${response.status}).`
+    );
+  }
+
+  return await response.json() as NonconformityResponse;
+}
+
+
 
 const stateLabels: Record<NonconformityState, string> = {
   [NonconformityState.OPEN]: 'Open',
@@ -104,6 +76,14 @@ function StateBadge({
 }
 
 export function NonconformityListPage() {
+
+  const nonconformityQuery = useQuery({
+    queryKey: ['nonconformities'],
+    queryFn: fetchNonconformities,
+  });
+
+  const nonconformities =
+    nonconformityQuery.data?.data ?? emptyNonconformities;
   const [search, setSearch] = useState('');
   const [selectedState, setSelectedState] =
     useState<NonconformityState | 'ALL'>('ALL');
@@ -137,12 +117,40 @@ export function NonconformityListPage() {
 
       return matchesSearch && matchesState && matchesTheme;
     });
-  }, [search, selectedState, selectedTheme]);
+  }, [nonconformities, search, selectedState, selectedTheme]);
 
   function clearFilters() {
     setSearch('');
     setSelectedState('ALL');
     setSelectedTheme('ALL');
+  }
+  if (nonconformityQuery.isPending) {
+    return (
+      <main className="nc-page">
+        <div className="empty-state" role="status">
+          <h1>Loading nonconformities…</h1>
+          <p>Please wait while the records are loaded.</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (nonconformityQuery.isError) {
+    return (
+      <main className="nc-page">
+        <div className="empty-state" role="alert">
+          <h1>Could not load nonconformities</h1>
+          <p>{nonconformityQuery.error.message}</p>
+
+          <button
+            type="button"
+            onClick={() => void nonconformityQuery.refetch()}
+          >
+            Try again
+          </button>
+        </div>
+      </main>
+    );
   }
 
   return (
@@ -282,9 +290,16 @@ export function NonconformityListPage() {
 
         {filteredRows.length === 0 ? (
           <div className="nc-empty">
-            <h2>No matching nonconformities</h2>
+            <h2>
+              {nonconformities.length === 0
+                ? 'No nonconformities registered'
+                : 'No matching nonconformities'}
+            </h2>
+
             <p>
-              Try another search or clear the filters.
+              {nonconformities.length === 0
+                ? 'The database does not contain any nonconformities yet.'
+                : 'Try changing your search or filters.'}
             </p>
           </div>
         ) : (

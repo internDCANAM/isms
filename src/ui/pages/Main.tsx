@@ -1,74 +1,212 @@
+import {useQuery} from '@tanstack/react-query';
 import {Link} from 'react-router-dom';
+import {AssetCategory,
+  ControlStatus,
+  DocumentStatus,
+  NonconformityState,
+  RiskLevel,} from '../../domain.js';
 import '../css/dashboard.css';
 
-const modules = [
-  {
-    to: '/risks',
-    label: 'Risk register',
-    description: 'Identify, assess and treat information-security risks.',
-    count: 5,
-    detail: '1 critical risk',
-    color: 'blue',
-  },
-  {
-    to: '/nonconformities',
-    label: 'Nonconformities',
-    description: 'Investigate findings and follow corrective actions.',
-    count: 5,
-    detail: '2 currently open',
-    color: 'orange',
-  },
-  {
-    to: '/assets',
-    label: 'Asset inventory',
-    description: 'Review information, systems, people and facilities.',
-    count: 6,
-    detail: '4 asset categories',
-    color: 'cyan',
-  },
-  {
-    to: '/controls',
-    label: 'Controls',
-    description: 'Monitor the Statement of Applicability.',
-    count: 6,
-    detail: '3 implemented',
-    color: 'purple',
-  },
-  {
-    to: '/documents',
-    label: 'Documents',
-    description: 'Access controlled ISMS policies and procedures.',
-    count: 6,
-    detail: '3 approved',
-    color: 'pink',
-  },
-] as const;
+interface PageResponse<T> {
+  data: T[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
 
-const activities = [
-  {
-    reference: 'R-0001',
-    title: 'Customer-information risk updated',
-    time: 'Today',
-  },
-  {
-    reference: 'NC-0001',
-    title: 'Corrective action assigned',
-    time: 'Yesterday',
-  },
-  {
-    reference: 'DOC-0003',
-    title: 'Incident Response Plan sent for review',
-    time: '2 days ago',
-  },
-] as const;
+interface RiskMetric {
+  inherentLevel: RiskLevel | null;
+}
+
+interface NonconformityMetric {
+  state: NonconformityState;
+}
+
+interface AssetMetric {
+  category: AssetCategory;
+}
+
+interface ControlMetric {
+  status: ControlStatus;
+}
+
+interface DocumentMetric {
+  status: DocumentStatus;
+}
+
+async function fetchPage<T>(path: string): Promise<PageResponse<T>> {
+  const response = await fetch(`${path}?page=1&limit=100`, {
+    credentials: 'same-origin',
+  });
+
+  if (!response.ok) {
+    throw new Error(`Request failed with status ${response.status}.`);
+  }
+
+  return await response.json() as PageResponse<T>;
+}
 
 export function MainPage() {
+  const riskQuery = useQuery({
+    queryKey: ['risks', 'dashboard'],
+    queryFn: () => fetchPage<RiskMetric>('/api/v1/risks'),
+  });
+
+  const nonconformityQuery = useQuery({
+    queryKey: ['nonconformities', 'dashboard'],
+    queryFn: () =>
+      fetchPage<NonconformityMetric>('/api/v1/nonconformities'),
+  });
+
+  const assetQuery = useQuery({
+    queryKey: ['assets', 'dashboard'],
+    queryFn: () => fetchPage<AssetMetric>('/api/v1/assets'),
+  });
+
+  const controlQuery = useQuery({
+    queryKey: ['controls', 'dashboard'],
+    queryFn: () => fetchPage<ControlMetric>('/api/v1/controls'),
+  });
+
+  const documentQuery = useQuery({
+    queryKey: ['documents', 'dashboard'],
+    queryFn: () => fetchPage<DocumentMetric>('/api/v1/documents'),
+  });
+
+  const queries = [
+    riskQuery,
+    nonconformityQuery,
+    assetQuery,
+    controlQuery,
+    documentQuery,
+  ];
+
+  const isLoading = queries.some((query) => query.isPending);
+  const hasError = queries.some((query) => query.isError);
+
+  const risks = riskQuery.data?.data ?? [];
+  const nonconformities = nonconformityQuery.data?.data ?? [];
+  const assets = assetQuery.data?.data ?? [];
+  const controls = controlQuery.data?.data ?? [];
+  const documents = documentQuery.data?.data ?? [];
+
+  const criticalRiskCount = risks.filter(
+    (risk) => risk.inherentLevel === RiskLevel.CRITICAL
+  ).length;
+
+  const openNonconformityCount = nonconformities.filter(
+    (item) => item.state === NonconformityState.OPEN
+  ).length;
+
+  const assetCategoryCount =
+    new Set(assets.map((asset) => asset.category)).size;
+
+  const implementedControlCount = controls.filter(
+    (control) => control.status === ControlStatus.IMPLEMENTED
+  ).length;
+
+  const approvedDocumentCount = documents.filter(
+    (document) => document.status === DocumentStatus.APPROVED
+  ).length;
+
+  const reviewDocumentCount = documents.filter(
+    (document) => document.status === DocumentStatus.IN_REVIEW
+  ).length;
+
+  function displayTotal(
+    query: typeof riskQuery,
+    fallback: number
+  ): number | string {
+    if (query.isPending) {
+      return '…';
+    }
+
+    if (query.isError) {
+      return '—';
+    }
+
+    return query.data?.pagination.total ?? fallback;
+  }
+
+  const modules = [
+    {
+      to: '/risks',
+      label: 'Risk register',
+      description: 'Identify, assess and treat information-security risks.',
+      count: displayTotal(riskQuery, risks.length),
+      detail: `${criticalRiskCount} critical risks`,
+      color: 'blue',
+    },
+    {
+      to: '/nonconformities',
+      label: 'Nonconformities',
+      description: 'Investigate findings and follow corrective actions.',
+      count: nonconformityQuery.isPending
+        ? '…'
+        : nonconformityQuery.isError
+          ? '—'
+          : nonconformityQuery.data?.pagination.total
+            ?? nonconformities.length,
+      detail: `${openNonconformityCount} currently open`,
+      color: 'orange',
+    },
+    {
+      to: '/assets',
+      label: 'Asset inventory',
+      description: 'Review information, systems, people and facilities.',
+      count: assetQuery.isPending
+        ? '…'
+        : assetQuery.isError
+          ? '—'
+          : assetQuery.data?.pagination.total ?? assets.length,
+      detail: `${assetCategoryCount} asset categories`,
+      color: 'cyan',
+    },
+    {
+      to: '/controls',
+      label: 'Controls',
+      description: 'Monitor the Statement of Applicability.',
+      count: controlQuery.isPending
+        ? '…'
+        : controlQuery.isError
+          ? '—'
+          : controlQuery.data?.pagination.total ?? controls.length,
+      detail: `${implementedControlCount} implemented`,
+      color: 'purple',
+    },
+    {
+      to: '/documents',
+      label: 'Documents',
+      description: 'Access controlled ISMS policies and procedures.',
+      count: documentQuery.isPending
+        ? '…'
+        : documentQuery.isError
+          ? '—'
+          : documentQuery.data?.pagination.total ?? documents.length,
+      detail: `${approvedDocumentCount} approved`,
+      color: 'pink',
+    },
+  ] as const;
+
+  const statusText = hasError
+    ? 'Some data is unavailable'
+    : isLoading
+      ? 'Loading current status'
+      : 'Active and monitored';
+
   return (
     <main className="dashboard-page">
       <header className="dashboard-hero">
         <div>
-          <p className="dashboard-eyebrow">Information Security Management</p>
+          <p className="dashboard-eyebrow">
+            Information Security Management
+          </p>
+
           <h1>ISMS dashboard</h1>
+
           <p>
             Get an overview of risks, controls, assets and improvement work.
           </p>
@@ -76,9 +214,10 @@ export function MainPage() {
 
         <div className="dashboard-health">
           <span className="dashboard-health__dot" />
+
           <span>
             <strong>ISMS status</strong>
-            <small>Active and monitored</small>
+            <small>{statusText}</small>
           </span>
         </div>
       </header>
@@ -96,9 +235,14 @@ export function MainPage() {
             <Link
               key={module.to}
               to={module.to}
-              className={`dashboard-module dashboard-module--${module.color}`}
+              className={
+                `dashboard-module dashboard-module--${module.color}`
+              }
             >
-              <span className="dashboard-module__label">{module.label}</span>
+              <span className="dashboard-module__label">
+                {module.label}
+              </span>
+
               <strong>{module.count}</strong>
               <p>{module.description}</p>
               <small>{module.detail}</small>
@@ -119,29 +263,47 @@ export function MainPage() {
 
           <div className="dashboard-attention">
             <Link to="/risks" className="dashboard-attention__item">
-              <span className="dashboard-attention__number">1</span>
-              <span>
-                <strong>Critical risk</strong>
-                <small>Requires immediate treatment</small>
+              <span className="dashboard-attention__number">
+                {criticalRiskCount}
               </span>
+
+              <span>
+                <strong>Critical risks</strong>
+                <small>Require immediate treatment</small>
+              </span>
+
               <span>→</span>
             </Link>
 
-            <Link to="/nonconformities" className="dashboard-attention__item">
-              <span className="dashboard-attention__number">2</span>
+            <Link
+              to="/nonconformities"
+              className="dashboard-attention__item"
+            >
+              <span className="dashboard-attention__number">
+                {openNonconformityCount}
+              </span>
+
               <span>
                 <strong>Open nonconformities</strong>
-                <small>Corrective actions are pending</small>
+                <small>Corrective actions may be pending</small>
               </span>
+
               <span>→</span>
             </Link>
 
-            <Link to="/documents" className="dashboard-attention__item">
-              <span className="dashboard-attention__number">1</span>
+            <Link
+              to="/documents"
+              className="dashboard-attention__item"
+            >
+              <span className="dashboard-attention__number">
+                {reviewDocumentCount}
+              </span>
+
               <span>
-                <strong>Document in review</strong>
+                <strong>Documents in review</strong>
                 <small>Waiting for approval</small>
               </span>
+
               <span>→</span>
             </Link>
           </div>
@@ -156,15 +318,16 @@ export function MainPage() {
           </div>
 
           <div className="dashboard-activity">
-            {activities.map((activity) => (
-              <article key={activity.reference}>
-                <span>{activity.reference}</span>
-                <div>
-                  <strong>{activity.title}</strong>
-                  <small>{activity.time}</small>
-                </div>
-              </article>
-            ))}
+            <article>
+              <span>API</span>
+
+              <div>
+                <strong>Dashboard connected to live registers</strong>
+                <small>
+                  Audit-event integration will be added in a later phase.
+                </small>
+              </div>
+            </article>
           </div>
         </section>
       </div>

@@ -378,4 +378,9 @@
   .action-status {
     align-self: start;
   }
+  .nc-edit-button:disabled,
+  .nc-detail-section-heading button:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
 }

@@ -334,4 +334,8 @@
   .asset-table td:nth-child(8) {
     display: none;
   }
+  .asset-new-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
 }

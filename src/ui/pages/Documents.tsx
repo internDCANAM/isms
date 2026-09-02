@@ -1,4 +1,5 @@
 import {useMemo, useState} from 'react';
+import {useQuery} from '@tanstack/react-query';
 import {DocumentStatus} from '../../domain.js';
 import '../css/documents.css';
 
@@ -18,107 +19,33 @@ type DocumentRow = {
   controlId: string | null;
   createdAt: string;
 };
+interface DocumentResponse {
+  data: DocumentRow[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+const emptyDocuments: DocumentRow[] = [];
+
+async function fetchDocuments(): Promise<DocumentResponse> {
+  const response = await fetch('/api/v1/documents?page=1&limit=100', {
+    credentials: 'same-origin',
+  });
+
+  if (!response.ok) {
+    throw new Error(`Could not load documents (${response.status}).`);
+  }
+
+  return await response.json() as DocumentResponse;
+}
 
 type FileTypeFilter = 'ALL' | 'PDF' | 'WORD' | 'EXCEL';
 
-const documents: DocumentRow[] = [
-  {
-    id: 'document-1',
-    reference: 'DOC-0001',
-    title: 'Information Security Policy',
-    version: '2.1',
-    status: DocumentStatus.APPROVED,
-    ownerId: 'user-1',
-    ownerName: 'Emma Lindberg',
-    approvedAt: '2026-06-15',
-    nextReviewAt: '2027-06-15',
-    mimeType: 'application/pdf',
-    sizeBytes: 845000,
-    riskId: null,
-    controlId: 'A.5.1',
-    createdAt: '2026-05-20',
-  },
-  {
-    id: 'document-2',
-    reference: 'DOC-0002',
-    title: 'Access Control Procedure',
-    version: '1.4',
-    status: DocumentStatus.APPROVED,
-    ownerId: 'user-2',
-    ownerName: 'Johan Berg',
-    approvedAt: '2026-07-01',
-    nextReviewAt: '2027-01-01',
-    mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    sizeBytes: 426000,
-    riskId: 'R-0001',
-    controlId: 'A.5.15',
-    createdAt: '2026-06-10',
-  },
-  {
-    id: 'document-3',
-    reference: 'DOC-0003',
-    title: 'Incident Response Plan',
-    version: '1.2',
-    status: DocumentStatus.IN_REVIEW,
-    ownerId: 'user-3',
-    ownerName: 'Sara Nilsson',
-    approvedAt: null,
-    nextReviewAt: '2026-09-30',
-    mimeType: 'application/pdf',
-    sizeBytes: 1250000,
-    riskId: 'R-0003',
-    controlId: null,
-    createdAt: '2026-07-08',
-  },
-  {
-    id: 'document-4',
-    reference: 'DOC-0004',
-    title: 'Backup and Recovery Instructions',
-    version: '0.8',
-    status: DocumentStatus.DRAFT,
-    ownerId: 'user-4',
-    ownerName: 'Dennis Karlsson',
-    approvedAt: null,
-    nextReviewAt: null,
-    mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    sizeBytes: 318000,
-    riskId: 'R-0004',
-    controlId: 'A.8.13',
-    createdAt: '2026-08-03',
-  },
-  {
-    id: 'document-5',
-    reference: 'DOC-0005',
-    title: 'Risk Assessment Register',
-    version: '3.0',
-    status: DocumentStatus.APPROVED,
-    ownerId: 'user-1',
-    ownerName: 'Emma Lindberg',
-    approvedAt: '2026-08-10',
-    nextReviewAt: '2027-02-10',
-    mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    sizeBytes: 786000,
-    riskId: null,
-    controlId: null,
-    createdAt: '2026-07-25',
-  },
-  {
-    id: 'document-6',
-    reference: 'DOC-0006',
-    title: 'Previous Security Awareness Guide',
-    version: '1.0',
-    status: DocumentStatus.RETIRED,
-    ownerId: null,
-    ownerName: null,
-    approvedAt: '2025-05-12',
-    nextReviewAt: null,
-    mimeType: 'application/pdf',
-    sizeBytes: 630000,
-    riskId: null,
-    controlId: 'A.6.3',
-    createdAt: '2025-04-20',
-  },
-];
+
 
 const statusLabels: Record<DocumentStatus, string> = {
   [DocumentStatus.DRAFT]: 'Draft',
@@ -156,6 +83,13 @@ function formatDate(date: string | null) {
 }
 
 export function DocumentsPage() {
+  const documentQuery = useQuery({
+    queryKey: ['documents'],
+    queryFn: fetchDocuments,
+  });
+
+  const documents =
+    documentQuery.data?.data ?? emptyDocuments;
   const [search, setSearch] = useState('');
   const [selectedStatus, setSelectedStatus] =
     useState<DocumentStatus | 'ALL'>('ALL');
@@ -182,7 +116,7 @@ export function DocumentsPage() {
 
       return matchesSearch && matchesStatus && matchesFileType;
     });
-  }, [search, selectedFileType, selectedStatus]);
+  }, [documents, search, selectedFileType, selectedStatus]);
 
   const draftCount = documents.filter(
     (document) => document.status === DocumentStatus.DRAFT
@@ -201,7 +135,34 @@ export function DocumentsPage() {
     setSelectedStatus('ALL');
     setSelectedFileType('ALL');
   };
+  if (documentQuery.isPending) {
+    return (
+      <main className="documents-page">
+        <div className="documents-empty" role="status">
+          <h1>Loading documents…</h1>
+          <p>Please wait while the documents are loaded.</p>
+        </div>
+      </main>
+    );
+  }
 
+  if (documentQuery.isError) {
+    return (
+      <main className="documents-page">
+        <div className="documents-empty" role="alert">
+          <h1>Could not load documents</h1>
+          <p>{documentQuery.error.message}</p>
+
+          <button
+            type="button"
+            onClick={() => void documentQuery.refetch()}
+          >
+            Try again
+          </button>
+        </div>
+      </main>
+    );
+  }
   return (
     <main className="documents-page">
       <header className="documents-header">
@@ -351,8 +312,17 @@ export function DocumentsPage() {
 
         {filteredDocuments.length === 0 && (
           <div className="documents-empty">
-            <h2>No documents found</h2>
-            <p>Try changing your search or filters.</p>
+            <h2>
+              {documents.length === 0
+                ? 'No documents registered'
+                : 'No documents found'}
+            </h2>
+
+            <p>
+              {documents.length === 0
+                ? 'The database does not contain any documents yet.'
+                : 'Try changing your search or filters.'}
+            </p>
             <button type="button" onClick={clearFilters}>
               Clear filters
             </button>

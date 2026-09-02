@@ -1,68 +1,10 @@
+import {useQuery} from '@tanstack/react-query';
 import {Link, useParams} from 'react-router-dom';
 import {NonconformityState, Theme} from '../../domain.js';
+import type {NonconformityDetail} from '../../api/nonconformity.js';
 import '../css/nonconformity-detail.css';
 
-interface CorrectiveAction {
-  id: string;
-  description: string;
-  rootCause: string | null;
-  assignedToName: string | null;
-  dueDate: string | null;
-  completedAt: string | null;
-}
-
-interface NonconformityDetail {
-  id: string;
-  reference: string;
-  title: string;
-  description: string;
-  theme: Theme;
-  state: NonconformityState;
-  raisedByName: string | null;
-  raisedAt: string;
-  updatedAt: string;
-  closedAt: string | null;
-  actions: CorrectiveAction[];
-}
-
-const nonconformity: NonconformityDetail = {
-  id: '1',
-  reference: 'NC-0001',
-  title: 'Access review was not completed on time',
-  description:
-    'The quarterly access review was not completed before '
-    + 'the planned deadline. Several user accounts were not '
-    + 'reviewed according to the access-control procedure.',
-  theme: Theme.ORGANIZATIONAL,
-  state: NonconformityState.OPEN,
-  raisedByName: 'Emma Lindberg',
-  raisedAt: '2026-08-10',
-  updatedAt: '2026-08-25',
-  closedAt: null,
-
-  actions: [
-    {
-      id: 'action-1',
-      description:
-        'Complete the delayed access review for all active users.',
-      rootCause:
-        'The review responsibility was not clearly assigned.',
-      assignedToName: 'Johan Berg',
-      dueDate: '2026-09-10',
-      completedAt: null,
-    },
-    {
-      id: 'action-2',
-      description:
-        'Create automatic reminders before each review deadline.',
-      rootCause:
-        'The existing process did not include reminders.',
-      assignedToName: 'Sara Nilsson',
-      dueDate: '2026-09-20',
-      completedAt: null,
-    },
-  ],
-};
+type CorrectiveAction = NonconformityDetail['actions'][number];
 
 const stateLabels: Record<NonconformityState, string> = {
   [NonconformityState.OPEN]: 'Open',
@@ -77,11 +19,15 @@ const themeLabels: Record<Theme, string> = {
   [Theme.TECHNOLOGICAL]: 'Technological',
 };
 
-function ActionStatus({
-  completedAt,
-}: {
-  completedAt: string | null;
-}) {
+function formatDate(value: string | null) {
+  if (value === null) {
+    return 'Not set';
+  }
+
+  return new Intl.DateTimeFormat('en-SE').format(new Date(value));
+}
+
+function ActionStatus({completedAt}: { completedAt: string | null }) {
   const completed = completedAt !== null;
 
   return (
@@ -97,10 +43,87 @@ function ActionStatus({
   );
 }
 
+async function fetchNonconformity(
+  id: string
+): Promise<NonconformityDetail> {
+  const response = await fetch(`/api/v1/nonconformities/${id}`, {
+    credentials: 'same-origin',
+  });
+
+  if (!response.ok) {
+    let message =
+      `Could not load nonconformity (${response.status}).`;
+
+    try {
+      const body = await response.json() as { error?: string };
+      message = body.error ?? message;
+    } catch {
+      // Keep the fallback message when the response is not JSON.
+    }
+
+    throw new Error(message);
+  }
+
+  return await response.json() as NonconformityDetail;
+}
+
+function CorrectiveActionCard({
+  action,
+}: {
+  action: CorrectiveAction;
+}) {
+  return (
+    <article className="corrective-action">
+      <div className="corrective-action__heading">
+        <h3>{action.description}</h3>
+        <ActionStatus completedAt={action.completedAt} />
+      </div>
+
+      <div className="root-cause">
+        <span>Root cause</span>
+        <p>{action.rootCause ?? 'Not recorded'}</p>
+      </div>
+
+      <dl className="action-information">
+        <div>
+          <dt>Assigned to</dt>
+          <dd>{action.assignedToName ?? 'Unassigned'}</dd>
+        </div>
+
+        <div>
+          <dt>Due date</dt>
+          <dd>{formatDate(action.dueDate)}</dd>
+        </div>
+
+        <div>
+          <dt>Completed</dt>
+          <dd>
+            {action.completedAt
+              ? formatDate(action.completedAt)
+              : 'Not completed'}
+          </dd>
+        </div>
+      </dl>
+    </article>
+  );
+}
+
 export function NonconformityDetailPage() {
   const {id} = useParams();
 
-  if (id !== nonconformity.id) {
+  const nonconformityQuery = useQuery({
+    queryKey: ['nonconformity', id],
+    queryFn: () => {
+      if (!id) {
+        throw new Error('The nonconformity ID is missing.');
+      }
+
+      return fetchNonconformity(id);
+    },
+    enabled: Boolean(id),
+  });
+
+  if (!id) {
     return (
       <main className="nc-detail-page">
         <Link className="nc-back-link" to="/nonconformities">
@@ -109,14 +132,51 @@ export function NonconformityDetailPage() {
 
         <section className="nc-detail-empty">
           <h1>Nonconformity details are unavailable</h1>
-
-          <p>
-            Detailed mock data currently exists only for NC-0001.
-          </p>
+          <p>The nonconformity ID is missing from the address.</p>
         </section>
       </main>
     );
   }
+
+  if (nonconformityQuery.isPending) {
+    return (
+      <main className="nc-detail-page">
+        <Link className="nc-back-link" to="/nonconformities">
+          ← Back to Nonconformities
+        </Link>
+
+        <section className="nc-detail-empty" role="status">
+          <h1>Loading nonconformity…</h1>
+          <p>Please wait while the record is loaded.</p>
+        </section>
+      </main>
+    );
+  }
+
+  if (nonconformityQuery.isError) {
+    return (
+      <main className="nc-detail-page">
+        <Link className="nc-back-link" to="/nonconformities">
+          ← Back to Nonconformities
+        </Link>
+
+        <section className="nc-detail-empty" role="alert">
+          <h1>Nonconformity details are unavailable</h1>
+          <p>{nonconformityQuery.error.message}</p>
+
+          <button
+            className="nc-edit-button"
+            type="button"
+            onClick={() => void nonconformityQuery.refetch()}
+          >
+            Try again
+          </button>
+        </section>
+      </main>
+    );
+  }
+
+  const nonconformity = nonconformityQuery.data;
 
   return (
     <main className="nc-detail-page">
@@ -132,9 +192,7 @@ export function NonconformityDetailPage() {
             <span
               className={
                 'nc-detail-state nc-detail-state--'
-                + nonconformity.state
-                  .toLowerCase()
-                  .replace('_', '-')
+                + nonconformity.state.toLowerCase().replace('_', '-')
               }
             >
               {stateLabels[nonconformity.state]}
@@ -142,13 +200,15 @@ export function NonconformityDetailPage() {
           </div>
 
           <h1>{nonconformity.title}</h1>
-
-          <p>
-            Last updated: {nonconformity.updatedAt}
-          </p>
+          <p>Last updated: {formatDate(nonconformity.updatedAt)}</p>
         </div>
 
-        <button className="nc-edit-button" type="button">
+        <button
+          className="nc-edit-button"
+          type="button"
+          disabled
+          title="Editing will be added in a later phase"
+        >
           Edit
         </button>
       </header>
@@ -157,7 +217,6 @@ export function NonconformityDetailPage() {
         <div className="nc-detail-main">
           <section className="nc-detail-card">
             <h2>Overview</h2>
-
             <p>{nonconformity.description}</p>
 
             <dl className="nc-information">
@@ -168,89 +227,54 @@ export function NonconformityDetailPage() {
 
               <div>
                 <dt>Raised by</dt>
-                <dd>
-                  {nonconformity.raisedByName ?? 'Unassigned'}
-                </dd>
+                <dd>{nonconformity.raisedByName ?? 'Unassigned'}</dd>
               </div>
 
               <div>
                 <dt>Raised at</dt>
-                <dd>{nonconformity.raisedAt}</dd>
+                <dd>{formatDate(nonconformity.raisedAt)}</dd>
               </div>
 
               <div>
                 <dt>Actions</dt>
-                <dd>{nonconformity.actions.length}</dd>
+                <dd>{nonconformity.actionCount}</dd>
               </div>
+
+              {nonconformity.closedAt && (
+                <div>
+                  <dt>Closed at</dt>
+                  <dd>{formatDate(nonconformity.closedAt)}</dd>
+                </div>
+              )}
             </dl>
           </section>
 
           <section className="nc-detail-card">
             <div className="nc-detail-section-heading">
               <div>
-                <p className="nc-detail-eyebrow">
-                  Clause 10.2
-                </p>
-
+                <p className="nc-detail-eyebrow">Clause 10.2</p>
                 <h2>Corrective actions</h2>
               </div>
 
-              <button type="button">
+              <button type="button" disabled>
                 + Add action
               </button>
             </div>
 
-            <div className="corrective-action-list">
-              {nonconformity.actions.map((action) => (
-                <article
-                  className="corrective-action"
-                  key={action.id}
-                >
-                  <div className="corrective-action__heading">
-                    <h3>{action.description}</h3>
-
-                    <ActionStatus
-                      completedAt={action.completedAt}
-                    />
-                  </div>
-
-                  <div className="root-cause">
-                    <span>Root cause</span>
-
-                    <p>
-                      {action.rootCause ?? 'Not recorded'}
-                    </p>
-                  </div>
-
-                  <dl className="action-information">
-                    <div>
-                      <dt>Assigned to</dt>
-                      <dd>
-                        {
-                          action.assignedToName
-                          ?? 'Unassigned'
-                        }
-                      </dd>
-                    </div>
-
-                    <div>
-                      <dt>Due date</dt>
-                      <dd>{action.dueDate ?? 'Not set'}</dd>
-                    </div>
-
-                    <div>
-                      <dt>Completed</dt>
-                      <dd>
-                        {
-                          action.completedAt
-                          ?? 'Not completed'
-                        }
-                      </dd>
-                    </div>
-                  </dl>
-                </article>
-              ))}
-            </div>
+            {nonconformity.actions.length === 0 ? (
+              <div className="nc-detail-empty">
+                <p>No corrective actions have been added.</p>
+              </div>
+            ) : (
+              <div className="corrective-action-list">
+                {nonconformity.actions.map((action) => (
+                  <CorrectiveActionCard
+                    key={action.id}
+                    action={action}
+                  />
+                ))}
+              </div>
+            )}
           </section>
         </div>
 
@@ -261,27 +285,21 @@ export function NonconformityDetailPage() {
             <span
               className={
                 'nc-detail-state nc-detail-state--'
-                + nonconformity.state
-                  .toLowerCase()
-                  .replace('_', '-')
+                + nonconformity.state.toLowerCase().replace('_', '-')
               }
             >
               {stateLabels[nonconformity.state]}
             </span>
 
             <p>
-              This nonconformity remains open until all
-              corrective actions are completed and verified.
+              This nonconformity remains active until its corrective
+              actions are completed and verified.
             </p>
           </section>
 
           <section className="nc-detail-card">
             <h2>Activity</h2>
-
-            <p>
-              Audit history will be connected when API
-              integration is ready.
-            </p>
+            <p>Audit history will be connected in a later phase.</p>
           </section>
         </aside>
       </div>

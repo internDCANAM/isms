@@ -1,4 +1,5 @@
 import {useMemo, useState} from 'react';
+import {useQuery} from '@tanstack/react-query';
 import {Applicability, ControlStatus, Theme} from '../../domain.js';
 import '../css/controls.css';
 
@@ -16,93 +17,31 @@ type ControlRow = {
   riskCount: number;
   createdAt: string;
 };
+interface ControlResponse {
+  data: ControlRow[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
 
-const controls: ControlRow[] = [
-  {
-    id: 'control-1',
-    reference: 'A.5.1',
-    title: 'Policies for information security',
-    purpose: 'Provide management direction for information security.',
-    theme: Theme.ORGANIZATIONAL,
-    applicability: Applicability.APPLICABLE,
-    justification: 'Required to establish the ISMS policy framework.',
-    status: ControlStatus.IMPLEMENTED,
-    ownerName: 'Emma Lindberg',
-    implementation: 'Information-security policies are approved and reviewed annually.',
-    riskCount: 2,
-    createdAt: '2026-07-10',
-  },
-  {
-    id: 'control-2',
-    reference: 'A.5.15',
-    title: 'Access control',
-    purpose: 'Protect information through controlled access.',
-    theme: Theme.ORGANIZATIONAL,
-    applicability: Applicability.APPLICABLE,
-    justification: 'Required for systems containing confidential information.',
-    status: ControlStatus.VERIFIED,
-    ownerName: 'Johan Berg',
-    implementation: 'Role-based access and quarterly access reviews are active.',
-    riskCount: 4,
-    createdAt: '2026-07-12',
-  },
-  {
-    id: 'control-3',
-    reference: 'A.5.18',
-    title: 'Access rights',
-    purpose: 'Manage the provisioning and removal of access rights.',
-    theme: Theme.ORGANIZATIONAL,
-    applicability: Applicability.APPLICABLE,
-    justification: 'Reduces unauthorised access risks.',
-    status: ControlStatus.IN_PROGRESS,
-    ownerName: 'Emma Lindberg',
-    implementation: 'The joiner, mover and leaver process is being documented.',
-    riskCount: 3,
-    createdAt: '2026-07-15',
-  },
-  {
-    id: 'control-4',
-    reference: 'A.6.3',
-    title: 'Information-security awareness',
-    purpose: 'Ensure personnel understand their security responsibilities.',
-    theme: Theme.PEOPLE,
-    applicability: Applicability.APPLICABLE,
-    justification: 'All employees handle company information.',
-    status: ControlStatus.IMPLEMENTED,
-    ownerName: 'Sara Nilsson',
-    implementation: 'Annual training and phishing exercises are provided.',
-    riskCount: 2,
-    createdAt: '2026-07-18',
-  },
-  {
-    id: 'control-5',
-    reference: 'A.7.4',
-    title: 'Physical security monitoring',
-    purpose: 'Monitor premises for unauthorised physical access.',
-    theme: Theme.PHYSICAL,
-    applicability: Applicability.EXCLUDED,
-    justification: 'The office building provides centrally managed monitoring.',
-    status: ControlStatus.NOT_STARTED,
-    ownerName: null,
-    implementation: null,
-    riskCount: 0,
-    createdAt: '2026-07-20',
-  },
-  {
-    id: 'control-6',
-    reference: 'A.8.13',
-    title: 'Information backup',
-    purpose: 'Protect information against loss or destruction.',
-    theme: Theme.TECHNOLOGICAL,
-    applicability: Applicability.APPLICABLE,
-    justification: 'Backups are required for critical systems and information.',
-    status: ControlStatus.IMPLEMENTED,
-    ownerName: 'Dennis Karlsson',
-    implementation: 'Encrypted daily backups are retained and regularly tested.',
-    riskCount: 3,
-    createdAt: '2026-07-22',
-  },
-];
+const emptyControls: ControlRow[] = [];
+
+async function fetchControls(): Promise<ControlResponse> {
+  const response = await fetch('/api/v1/controls?page=1&limit=100', {
+    credentials: 'same-origin',
+  });
+
+  if (!response.ok) {
+    throw new Error(`Could not load controls (${response.status}).`);
+  }
+
+  return await response.json() as ControlResponse;
+}
+
+
 
 const themeLabels: Record<Theme, string> = {
   [Theme.ORGANIZATIONAL]: 'Organizational',
@@ -124,6 +63,13 @@ const applicabilityLabels: Record<Applicability, string> = {
 };
 
 export function ControlsPage() {
+
+  const controlQuery = useQuery({
+    queryKey: ['controls'],
+    queryFn: fetchControls,
+  });
+
+  const controls = controlQuery.data?.data ?? emptyControls;
   const [search, setSearch] = useState('');
   const [selectedTheme, setSelectedTheme] = useState<Theme | 'ALL'>('ALL');
   const [selectedStatus, setSelectedStatus] =
@@ -159,7 +105,7 @@ export function ControlsPage() {
         matchesApplicability
       );
     });
-  }, [search, selectedApplicability, selectedStatus, selectedTheme]);
+  }, [controls, search, selectedApplicability, selectedStatus, selectedTheme]);
 
   const applicableCount = controls.filter(
     (control) => control.applicability === Applicability.APPLICABLE
@@ -180,6 +126,34 @@ export function ControlsPage() {
     setSelectedApplicability('ALL');
   };
 
+  if (controlQuery.isPending) {
+    return (
+      <main className="controls-page">
+        <div className="controls-empty" role="status">
+          <h1>Loading controls…</h1>
+          <p>Please wait while the controls are loaded.</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (controlQuery.isError) {
+    return (
+      <main className="controls-page">
+        <div className="controls-empty" role="alert">
+          <h1>Could not load controls</h1>
+          <p>{controlQuery.error.message}</p>
+
+          <button
+            type="button"
+            onClick={() => void controlQuery.refetch()}
+          >
+            Try again
+          </button>
+        </div>
+      </main>
+    );
+  }
   return (
     <main className="controls-page">
       <header className="controls-header">
@@ -339,8 +313,17 @@ export function ControlsPage() {
 
         {filteredControls.length === 0 && (
           <div className="controls-empty">
-            <h2>No controls found</h2>
-            <p>Try changing your search or filters.</p>
+            <h2>
+              {controls.length === 0
+                ? 'No controls registered'
+                : 'No controls found'}
+            </h2>
+
+            <p>
+              {controls.length === 0
+                ? 'The database does not contain any controls yet.'
+                : 'Try changing your search or filters.'}
+            </p>
             <button type="button" onClick={clearFilters}>
               Clear filters
             </button>

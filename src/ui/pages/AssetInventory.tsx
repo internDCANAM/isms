@@ -1,4 +1,5 @@
 import {useMemo, useState} from 'react';
+import {useQuery} from '@tanstack/react-query';
 import {AssetCategory, Theme} from '../../domain.js';
 import '../css/asset-inventory.css';
 
@@ -6,7 +7,7 @@ interface AssetRow {
   id: string;
   reference: string;
   name: string;
-  description: string;
+  description: string | null;
   category: AssetCategory;
   theme: Theme;
   ownerName: string | null;
@@ -14,81 +15,35 @@ interface AssetRow {
   riskCount: number;
   createdAt: string;
 }
+interface AssetResponse {
+  data: AssetRow[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
 
-const assets: AssetRow[] = [
-  {
-    id: '1',
-    reference: 'A-0001',
-    name: 'Customer information database',
-    description: 'Database containing customer information.',
-    category: AssetCategory.INFORMATION,
-    theme: Theme.TECHNOLOGICAL,
-    ownerName: 'Emma Lindberg',
-    classification: 'Confidential',
-    riskCount: 3,
-    createdAt: '2026-07-10',
-  },
-  {
-    id: '2',
-    reference: 'A-0002',
-    name: 'Customer portal',
-    description: 'Web portal used by external customers.',
-    category: AssetCategory.SOFTWARE,
-    theme: Theme.TECHNOLOGICAL,
-    ownerName: 'Johan Berg',
-    classification: 'Internal',
-    riskCount: 2,
-    createdAt: '2026-07-12',
-  },
-  {
-    id: '3',
-    reference: 'A-0003',
-    name: 'Employee laptops',
-    description: 'Portable computers used by employees.',
-    category: AssetCategory.HARDWARE,
-    theme: Theme.PHYSICAL,
-    ownerName: 'Sara Nilsson',
-    classification: 'Internal',
-    riskCount: 4,
-    createdAt: '2026-07-15',
-  },
-  {
-    id: '4',
-    reference: 'A-0004',
-    name: 'Cloud backup service',
-    description: 'External service for encrypted backups.',
-    category: AssetCategory.SERVICE,
-    theme: Theme.TECHNOLOGICAL,
-    ownerName: 'Dennis Karlsson',
-    classification: 'Confidential',
-    riskCount: 2,
-    createdAt: '2026-07-18',
-  },
-  {
-    id: '5',
-    reference: 'A-0005',
-    name: 'System administrators',
-    description: 'Employees with privileged system access.',
-    category: AssetCategory.PEOPLE,
-    theme: Theme.PEOPLE,
-    ownerName: 'Emma Lindberg',
-    classification: 'Restricted',
-    riskCount: 3,
-    createdAt: '2026-07-20',
-  },
-  {
-    id: '6',
-    reference: 'A-0006',
-    name: 'Main office',
-    description: 'Primary workplace and equipment location.',
-    category: AssetCategory.FACILITY,
-    theme: Theme.PHYSICAL,
-    ownerName: null,
-    classification: 'Internal',
-    riskCount: 1,
-    createdAt: '2026-07-22',
-  },
-];
+const emptyAssets: AssetRow[] = [];
+
+async function fetchAssets(): Promise<AssetResponse> {
+  const response = await fetch('/api/v1/assets?page=1&limit=100', {
+    credentials: 'same-origin',
+  });
+
+  if (!response.ok) {
+    throw new Error(`Could not load assets (${response.status}).`);
+  }
+
+  return await response.json() as AssetResponse;
+}
+
+function formatDate(value: string) {
+  return new Intl.DateTimeFormat('en-SE').format(new Date(value));
+}
+
+
 
 const categoryLabels: Record<AssetCategory, string> = {
   [AssetCategory.INFORMATION]: 'Information',
@@ -124,6 +79,13 @@ function CategoryBadge({
 }
 
 export function AssetInventoryPage() {
+
+  const assetQuery = useQuery({
+    queryKey: ['assets'],
+    queryFn: fetchAssets,
+  });
+
+  const assets = assetQuery.data?.data ?? emptyAssets;
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] =
     useState<AssetCategory | 'ALL'>('ALL');
@@ -137,7 +99,7 @@ export function AssetInventoryPage() {
       const searchableText = [
         asset.reference,
         asset.name,
-        asset.description,
+        asset.description ?? '',
         asset.ownerName ?? '',
         asset.classification ?? '',
         categoryLabels[asset.category],
@@ -159,13 +121,42 @@ export function AssetInventoryPage() {
 
       return matchesSearch && matchesCategory && matchesTheme;
     });
-  }, [search, selectedCategory, selectedTheme]);
+  }, [assets, search, selectedCategory, selectedTheme]);
 
   function clearFilters() {
     setSearch('');
     setSelectedCategory('ALL');
     setSelectedTheme('ALL');
   }
+  if (assetQuery.isPending) {
+    return (
+      <main className="asset-page">
+        <div className="asset-empty" role="status">
+          <h1>Loading asset inventory…</h1>
+          <p>Please wait while the assets are loaded.</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (assetQuery.isError) {
+    return (
+      <main className="asset-page">
+        <div className="asset-empty" role="alert">
+          <h1>Could not load assets</h1>
+          <p>{assetQuery.error.message}</p>
+
+          <button
+            type="button"
+            onClick={() => void assetQuery.refetch()}
+          >
+            Try again
+          </button>
+        </div>
+      </main>
+    );
+  }
+
 
   return (
     <main className="asset-page">
@@ -182,9 +173,15 @@ export function AssetInventoryPage() {
           </p>
         </div>
 
-        <button className="asset-new-button" type="button">
+        <button
+          className="asset-new-button"
+          type="button"
+          disabled
+          title="Creating assets will be added in a later phase"
+        >
           + New asset
         </button>
+
       </header>
 
       <section
@@ -322,10 +319,16 @@ export function AssetInventoryPage() {
 
         {filteredAssets.length === 0 ? (
           <div className="asset-empty">
-            <h2>No matching assets</h2>
+            <h2>
+              {assets.length === 0
+                ? 'No assets registered'
+                : 'No matching assets'}
+            </h2>
 
             <p>
-              Try another search or clear the filters.
+              {assets.length === 0
+                ? 'The database does not contain any assets yet.'
+                : 'Try another search or clear the filters.'}
             </p>
           </div>
         ) : (
@@ -351,9 +354,11 @@ export function AssetInventoryPage() {
 
                     <td>
                       <strong>{asset.name}</strong>
-                      <span className="asset-description">
-                        {asset.description}
-                      </span>
+                      {asset.description && (
+                        <span className="asset-description">
+                          {asset.description}
+                        </span>
+                      )}
                     </td>
 
                     <td>
@@ -374,7 +379,7 @@ export function AssetInventoryPage() {
 
                     <td>{asset.riskCount}</td>
 
-                    <td>{asset.createdAt}</td>
+                    <td>{formatDate(asset.createdAt)}</td>
                   </tr>
                 ))}
               </tbody>
