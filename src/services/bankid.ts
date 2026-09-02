@@ -94,8 +94,8 @@ export function bankIdService(client: BankIdClient, users: UserRepository): Bank
         }
         if (state.value.phase === loginPhase.complete) {
           close(orderRef, order);
-          const user = await users.findBypersonnummer(
-            state.value.completion.user.personnummer
+          const user = await users.findByPersonalNumber(
+            state.value.completion.user.personalNumber
           );
           if (!user) return {view: unknownUser};
           return {view: loginView(state.value), userId: user.id};

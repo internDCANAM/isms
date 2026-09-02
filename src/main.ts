@@ -102,7 +102,7 @@ export function createApp(
   r.use('/audit-events', auditRouter(deps.data.audit));
   api.use(r);
   app.use('/api/v1', api);
-  app.use('/api', notFoundHandler);
+  app.use('/api/v1', notFoundHandler);
   app.use(errorHandler(csrf.invalidTokenError));
   return app;
 }

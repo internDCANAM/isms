@@ -1,0 +1,359 @@
+/* Controlled documents page */
+
+.documents-page {
+  display: grid;
+  gap: 1.4rem;
+  width: min(100% - 2rem, 90rem);
+  margin-inline: auto;
+  padding-block: 2rem;
+  color: #19324b;
+}
+
+.documents-header {
+  padding: 1.6rem;
+  background: linear-gradient(120deg, #fff0c8, #ffdff0);
+  border-radius: 1rem;
+}
+
+.documents-header h1 {
+  margin: 0.3rem 0;
+  color: #71304e;
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+}
+
+.documents-header p {
+  margin: 0;
+  color: #77566a;
+}
+
+.documents-eyebrow {
+  color: #c23d78 !important;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* Summary */
+
+.documents-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.document-summary-card {
+  display: grid;
+  gap: 0.75rem;
+  min-height: 7rem;
+  padding: 1.1rem;
+  border: 1px solid rgb(30 60 90 / 10%);
+  border-radius: 0.9rem;
+  box-shadow: 0 0.3rem 0.8rem rgb(32 66 97 / 8%);
+}
+
+.document-summary-card span {
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.document-summary-card strong {
+  align-self: end;
+  font-size: 2rem;
+}
+
+.document-summary-card--total {
+  color: #07549b;
+  background: #d9edff;
+}
+
+.document-summary-card--draft {
+  color: #73520b;
+  background: #fff1bd;
+}
+
+.document-summary-card--review {
+  color: #9a3c66;
+  background: #ffe0ed;
+}
+
+.document-summary-card--approved {
+  color: #087248;
+  background: #d9f7e8;
+}
+
+/* Register and filters */
+
+.documents-register {
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid #d8e1e9;
+  border-radius: 1rem;
+  box-shadow: 0 0.35rem 1rem rgb(25 60 90 / 8%);
+}
+
+.documents-filters {
+  display: grid;
+  grid-template-columns: minmax(17rem, 1.5fr) repeat(2, minmax(11rem, 0.7fr));
+  gap: 0.75rem;
+  padding: 1rem;
+  background: #fff9fc;
+  border-block-end: 1px solid #e6dce2;
+}
+
+.documents-filters input,
+.documents-filters select {
+  width: 100%;
+  min-height: 2.8rem;
+  padding: 0.65rem 0.8rem;
+  color: #19324b;
+  background: #fff;
+  border: 1px solid #d7bfcc;
+  border-radius: 0.55rem;
+  font: inherit;
+}
+
+.documents-filters input:focus,
+.documents-filters select:focus {
+  border-color: #c23d78;
+  outline: 3px solid rgb(194 61 120 / 15%);
+}
+
+.documents-results {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.8rem 1rem;
+  color: #61778b;
+  font-size: 0.88rem;
+}
+
+.documents-clear {
+  padding: 0;
+  color: #bd376f;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+}
+
+.documents-clear:hover {
+  color: #7736aa;
+  text-decoration: underline;
+}
+
+/* Table */
+
+.documents-table-scroll {
+  overflow-x: auto;
+}
+
+.documents-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: start;
+}
+
+.documents-table th,
+.documents-table td {
+  padding: 0.9rem 1rem;
+  border-block-start: 1px solid #e0e7ed;
+  text-align: start;
+  vertical-align: middle;
+}
+
+.documents-table th {
+  color: #485f73;
+  background: #f4f7fa;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.documents-table tbody tr:hover {
+  background: #fff9fc;
+}
+
+.documents-table td:first-child {
+  color: #bd376f;
+  font-family: var(--font-mono, monospace);
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.documents-table td:nth-child(2) {
+  min-width: 17rem;
+}
+
+.documents-table td:nth-child(2) strong,
+.documents-table td:nth-child(2) small,
+.documents-table td:nth-child(8) small {
+  display: block;
+}
+
+.documents-table td:nth-child(2) strong {
+  color: #19324b;
+}
+
+.documents-table small {
+  margin-block-start: 0.25rem;
+  color: #6b8092;
+  line-height: 1.35;
+}
+
+/* Status badges */
+
+.document-status,
+.document-file {
+  display: inline-flex;
+  justify-content: center;
+  padding: 0.3rem 0.65rem;
+  border: 1px solid;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.document-status {
+  min-width: 6rem;
+}
+
+.document-status--draft {
+  color: #73520b;
+  background: #fff2c8;
+  border-color: #ead287;
+}
+
+.document-status--in-review {
+  color: #9a3c66;
+  background: #ffe3ef;
+  border-color: #efb5ce;
+}
+
+.document-status--approved {
+  color: #087248;
+  background: #dff7ea;
+  border-color: #a9dec1;
+}
+
+.document-status--retired {
+  color: #68727c;
+  background: #eef1f3;
+  border-color: #cfd6db;
+}
+
+.document-file {
+  min-width: 3.5rem;
+}
+
+.document-file--pdf {
+  color: #a62f3b;
+  background: #ffe5e8;
+  border-color: #f2b5bc;
+}
+
+.document-file--word {
+  color: #175ba3;
+  background: #e2efff;
+  border-color: #afd0f2;
+}
+
+.document-file--excel {
+  color: #117044;
+  background: #ddf5e8;
+  border-color: #a8ddbf;
+}
+
+/* Empty state */
+
+.documents-empty {
+  display: grid;
+  gap: 0.5rem;
+  min-height: 12rem;
+  padding: 2rem;
+  place-content: center;
+  text-align: center;
+}
+
+.documents-empty h2,
+.documents-empty p {
+  margin: 0;
+}
+
+.documents-empty p {
+  color: #687d90;
+}
+
+.documents-empty button {
+  justify-self: center;
+  margin-block-start: 0.5rem;
+  padding: 0.6rem 1rem;
+  color: #fff;
+  background: #bd376f;
+  border: 0;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+}
+
+/* Responsive */
+
+@media (max-width: 70rem) {
+  .documents-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .documents-filters {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .documents-filters label:first-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 48rem) {
+  .documents-page {
+    width: min(100% - 1rem, 90rem);
+    padding-block: 1rem;
+  }
+
+  .documents-table th:nth-child(6),
+  .documents-table td:nth-child(6),
+  .documents-table th:nth-child(9),
+  .documents-table td:nth-child(9) {
+    display: none;
+  }
+}
+
+@media (max-width: 32rem) {
+  .documents-summary,
+  .documents-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .documents-filters label:first-child {
+    grid-column: auto;
+  }
+
+  .documents-table th,
+  .documents-table td {
+    padding: 0.75rem;
+  }
+
+  .documents-table th:nth-child(3),
+  .documents-table td:nth-child(3),
+  .documents-table th:nth-child(5),
+  .documents-table td:nth-child(5),
+  .documents-table th:nth-child(7),
+  .documents-table td:nth-child(7) {
+    display: none;
+  }
+}

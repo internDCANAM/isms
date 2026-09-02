@@ -28,7 +28,7 @@ export interface CollectRequest { orderRef: string; }
 export interface CancelRequest  { orderRef: string; }
 
 export interface CompletionUser {
-  personnummer: string;
+  personalNumber: string;
   name: string;
   givenName: string;
   surname: string;

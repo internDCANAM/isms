@@ -58,11 +58,11 @@ export function ModPanel() {
       const user = await created.json() as ModUser;
       const armed = await postJson(`${MOD}/arm`, {
         kind: armKind.complete,
-        personnummer: user.personnummer,
+        personalNumber: user.personalNumber,
       });
       if (!armed.ok) throw new Error('could not arm complete');
       const arm = await armed.json() as ModArmComplete;
-      setNote(`Armed ${arm.personnummer}. Scan QR on login screen.`);
+      setNote(`Armed ${arm.personalNumber}. Scan QR on login screen.`);
     } catch (caught) {
       setNote(caught instanceof Error ? caught.message : 'arm failed');
     } finally { setBusy(false); }

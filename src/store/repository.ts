@@ -44,12 +44,12 @@ export type DocumentRepository = ReadRepository<HydratedDocument>;
 export interface UserRecord {
   id: string;
   name: string;
-  personnummer: string | null;
+  personalNumber: string | null;
 }
 
 export interface UserRepository {
-  findBypersonnummer(personnummer: string): Promise<UserRecord | null>;
-  upsertBypersonnummer(input: { personnummer: string; name: string }): Promise<UserRecord>;
+  findByPersonalNumber(personalNumber: string): Promise<UserRecord | null>;
+  upsertByPersonalNumber(input: { personalNumber: string; name: string }): Promise<UserRecord>;
 }
 
 export interface Repositories {
@@ -417,18 +417,18 @@ export function prismaRepositories(prisma: PrismaClient): Repositories {
     },
 
     users: {
-      async findBypersonnummer(personnummer) {
+      async findByPersonalNumber(personalNumber) {
         return prisma.user.findUnique({
-          where: {personnummer},
-          select: {id: true, name: true, personnummer: true},
+          where: {personalNumber},
+          select: {id: true, name: true, personalNumber: true},
         });
       },
-      async upsertBypersonnummer({personnummer, name}) {
+      async upsertByPersonalNumber({personalNumber, name}) {
         return prisma.user.upsert({
-          where: {personnummer},
-          create: {personnummer, name},
+          where: {personalNumber},
+          create: {personalNumber, name},
           update: {name},
-          select: {id: true, name: true, personnummer: true},
+          select: {id: true, name: true, personalNumber: true},
         });
       }
     }

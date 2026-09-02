@@ -4,9 +4,11 @@ import {createRoot} from 'react-dom/client';
 import {BrowserRouter, Navigate, Route, Routes} from 'react-router-dom';
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
 import {AssetInventoryPage} from './ui/pages/AssetInventory.js';
-import {LoginPage} from './ui/pages/Login.v1.js';
+import {LoginPage} from './ui/pages/Login.js';
+import {LoginPage as LoginV1Page} from './ui/pages/Login.v1.js';
 import {MainPage} from './ui/pages/Main.js';
 import {ControlsPage} from './ui/pages/Controls.js';
+import {DashboardPage} from './ui/pages/Dashboard.js';
 import {DocumentsPage} from './ui/pages/Documents.js';
 import {NonconformityDetailPage} from './ui/pages/NonconformityDetail.js';
 import {NonconformityListPage} from './ui/pages/NonconformityList.js';
@@ -14,6 +16,7 @@ import {RiskDetailPage} from './ui/pages/RiskDetail.js';
 import {RiskRegisterPage} from './ui/pages/RiskRegister.js';
 import {apiUrl} from './ui/links.js';
 import type {ModInfo} from './api/mod.js';
+import {AppLayout} from './ui/components/AppLayout.js';
 import './ui/css/index.css';
 
 const ModPanel = lazy(async() => {
@@ -34,15 +37,21 @@ function App() {
       {/* <Header /> */}
       <div className="app__main">
         <Routes>
-          <Route path="/" element={<MainPage />} />
-          <Route path="/risks" element={<RiskRegisterPage />} />
-          <Route path="/risks/:id" element={<RiskDetailPage />} />
-          <Route path="/nonconformities" element={<NonconformityListPage />} />
-          <Route path="/nonconformities/:id" element={<NonconformityDetailPage />} />
-          <Route path="/assets" element={<AssetInventoryPage />} />
-          <Route path="/controls" element={<ControlsPage />} />
-          <Route path="/documents" element={<DocumentsPage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/login/v1" element={<LoginV1Page />} />
+
+          <Route element={<AppLayout />}>
+            <Route index element={<MainPage />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/risks" element={<RiskRegisterPage />} />
+            <Route path="/risks/:id" element={<RiskDetailPage />} />
+            <Route path="/nonconformities" element={<NonconformityListPage />} />
+            <Route path="/nonconformities/:id" element={<NonconformityDetailPage />} />
+            <Route path="/assets" element={<AssetInventoryPage />} />
+            <Route path="/controls" element={<ControlsPage />} />
+            <Route path="/documents" element={<DocumentsPage />} />
+          </Route>
+
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>

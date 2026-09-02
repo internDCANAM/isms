@@ -1,0 +1,152 @@
+/* Application navigation */
+
+.app-header {
+  position: sticky;
+  z-index: 100;
+  inset-block-start: 0;
+  background: rgb(255 255 255 / 95%);
+  border-block-end: 1px solid #dce5ed;
+  box-shadow: 0 0.2rem 0.8rem rgb(25 55 85 / 7%);
+  backdrop-filter: blur(0.75rem);
+}
+
+.app-header__content {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  width: min(100% - 2rem, 90rem);
+  min-height: 4.5rem;
+  margin-inline: auto;
+}
+
+.app-brand {
+  display: inline-flex;
+  gap: 0.7rem;
+  align-items: center;
+  color: #17324d;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.app-brand__mark {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  color: #fff;
+  background: linear-gradient(135deg, #087ca7, #7137db);
+  border-radius: 0.7rem;
+  place-items: center;
+  font-size: 1.2rem;
+  font-weight: 900;
+}
+
+.app-brand strong,
+.app-brand small {
+  display: block;
+}
+
+.app-brand strong {
+  font-size: 0.95rem;
+}
+
+.app-brand small {
+  margin-block-start: 0.1rem;
+  color: #6a7e90;
+  font-size: 0.7rem;
+}
+
+.app-navigation {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+  margin-inline-start: auto;
+}
+
+.app-navigation__link {
+  padding: 0.55rem 0.7rem;
+  color: #526b80;
+  border-radius: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.app-navigation__link:hover {
+  color: #087ca7;
+  background: #edf8fc;
+}
+
+.app-navigation__link--active {
+  color: #fff;
+  background: linear-gradient(135deg, #087ca7, #7137db);
+}
+
+.app-navigation__link--active:hover {
+  color: #fff;
+  background: linear-gradient(135deg, #087ca7, #7137db);
+}
+
+.app-login-link {
+  padding: 0.55rem 0.9rem;
+  color: #7137db;
+  border: 1px solid #bba5eb;
+  border-radius: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 800;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.app-login-link:hover {
+  color: #fff;
+  background: #7137db;
+  border-color: #7137db;
+}
+
+.app-content {
+  min-width: 0;
+}
+
+/* Tablet navigation */
+
+@media (max-width: 68rem) {
+  .app-header__content {
+    flex-wrap: wrap;
+    gap: 0.6rem 1rem;
+    padding-block: 0.65rem;
+  }
+
+  .app-navigation {
+    order: 3;
+    width: 100%;
+    margin-inline-start: 0;
+    padding-block-end: 0.15rem;
+    overflow-x: auto;
+  }
+
+  .app-login-link {
+    margin-inline-start: auto;
+  }
+}
+
+/* Mobile navigation */
+
+@media (max-width: 32rem) {
+  .app-header__content {
+    width: min(100% - 1rem, 90rem);
+  }
+
+  .app-brand small {
+    display: none;
+  }
+
+  .app-navigation__link {
+    padding: 0.5rem 0.6rem;
+    font-size: 0.8rem;
+  }
+
+  .app-login-link {
+    padding: 0.5rem 0.7rem;
+  }
+}

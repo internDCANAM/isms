@@ -30,11 +30,11 @@ const dataset = [
 
 export const demoEndUserIp = faker.internet.ipv4();
 export const demoOrderTtlMs = 30_000;
-export const demoPersonnummerTable: readonly string[] = dataset;
+export const demoPersonalNumberTable: readonly string[] = dataset;
 
 export type DemoArm =
   | { kind: typeof armKind.pending }
-  | { kind: typeof armKind.complete; personnummer: string; name: string }
+  | { kind: typeof armKind.complete; personalNumber: string; name: string }
   | { kind: typeof armKind.fail };
 
 export interface DemoClient extends BankIdClient {
@@ -52,7 +52,7 @@ interface DemoOrderState {
   script?: CollectResponse[];
   collected: number;
 }
-export function demoPersonnummer(): string { return faker.helpers.arrayElement(dataset); }
+export function demoPersonalNumber(): string { return faker.helpers.arrayElement(dataset); }
 
 export function demoCollect(order: OrderResponse, completion: CompletionData): CollectResponse[] {
   return [
@@ -86,12 +86,12 @@ export function demoOrder(): OrderResponse {
   };
 }
 
-export function demoCompletion(user?: { personnummer: string; name: string }): CompletionData {
+export function demoCompletion(user?: { personalNumber: string; name: string }): CompletionData {
   const givenName = user?.name.split(/\s+/)[0] ?? faker.person.firstName();
   const surname = user?.name.split(/\s+/).slice(1).join(' ') || faker.person.lastName();
   return {
     user: {
-      personnummer: user?.personnummer ?? demoPersonnummer(),
+      personalNumber: user?.personalNumber ?? demoPersonalNumber(),
       name: user?.name ?? `${givenName} ${surname}`,
       givenName,
       surname,

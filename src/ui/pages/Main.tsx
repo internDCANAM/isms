@@ -1,7 +1,9 @@
 import {Link} from 'react-router-dom';
 
 const pages = [
+  {to: '/dashboard',               label: 'Dashboard'},
   {to: '/login',                   label: 'Login'},
+  {to: '/login/v1',                label: 'Login v1'},
   {to: '/risks',                   label: 'Risk register'},
   {to: '/risks/example',           label: 'Risk detail'},
   {to: '/nonconformities',         label: 'Nonconformities'},
@@ -18,7 +20,6 @@ export function MainPage() {
       <nav className="stack stack--dense">
         {pages.map(({to, label}) => <Link key={to} to={to}>{label}</Link>)}
       </nav>
-      <p className="note">Every page below is a stub — phase 2.</p>
     </section>
   );
 }

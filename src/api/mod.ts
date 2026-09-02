@@ -8,29 +8,29 @@ export const armKind = {
 export type ArmKind = (typeof armKind)[keyof typeof armKind];
 
 export const modUserBodySchema = z.object({
-  personnummer: z.string().min(1).optional(),
+  personalNumber: z.string().min(1).optional(),
   name: z.string().min(1).optional(),
 });
 
 export const modArmBodySchema = z.discriminatedUnion('kind', [
-  z.object({kind: z.literal(armKind.complete), personnummer: z.string().min(1)}),
+  z.object({kind: z.literal(armKind.complete), personalNumber: z.string().min(1)}),
   z.object({kind: z.literal(armKind.fail)}),
 ]);
 
 export interface ModInfo {
   modular: true;
-  personnummer: readonly string[];
+  personalNumbers: readonly string[];
 }
 
 export interface ModUser {
   id: string;
   name: string;
-  personnummer: string;
+  personalNumber: string;
 }
 
 export interface ModArmComplete {
   kind: typeof armKind.complete;
-  personnummer: string;
+  personalNumber: string;
 }
 
 export interface ModArmFail {
