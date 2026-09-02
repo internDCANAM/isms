@@ -1,0 +1,361 @@
+/* Login page */
+
+.login-page {
+  display: grid;
+  grid-template-columns: minmax(20rem, 1.1fr) minmax(22rem, 0.9fr);
+  min-height: 100vh;
+  color: #17324d;
+  background: #f7fafc;
+}
+
+.login-introduction {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding: clamp(2rem, 5vw, 5rem);
+  color: #fff;
+  background:
+    radial-gradient(circle at 15% 20%, rgb(85 220 216 / 35%), transparent 25%),
+    radial-gradient(circle at 85% 80%, rgb(176 112 255 / 35%), transparent 30%),
+    linear-gradient(145deg, #073a64, #155c7c 55%, #54349b);
+}
+
+.login-brand {
+  display: inline-flex;
+  gap: 0.8rem;
+  align-items: center;
+}
+
+.login-brand__mark {
+  display: grid;
+  width: 3rem;
+  height: 3rem;
+  color: #fff;
+  background: linear-gradient(135deg, #14b8a6, #8b5cf6);
+  border: 1px solid rgb(255 255 255 / 30%);
+  border-radius: 0.8rem;
+  box-shadow: 0 0.5rem 1.5rem rgb(0 0 0 / 20%);
+  place-items: center;
+  font-size: 1.4rem;
+  font-weight: 900;
+}
+
+.login-brand strong,
+.login-brand small {
+  display: block;
+}
+
+.login-brand strong {
+  font-size: 1.05rem;
+}
+
+.login-brand small {
+  margin-block-start: 0.15rem;
+  color: rgb(255 255 255 / 72%);
+  font-size: 0.75rem;
+}
+
+.login-introduction__content {
+  width: min(100%, 36rem);
+  margin-block: auto;
+}
+
+.login-eyebrow {
+  margin: 0;
+  color: #77eee1;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.login-introduction h1 {
+  max-width: 32rem;
+  margin: 0.7rem 0 1rem;
+  font-size: clamp(2.4rem, 6vw, 4.7rem);
+  line-height: 1.05;
+}
+
+.login-introduction__content > p:not(.login-eyebrow) {
+  max-width: 34rem;
+  color: rgb(255 255 255 / 78%);
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+
+.login-benefits {
+  display: grid;
+  gap: 0.8rem;
+  margin: 2rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.login-benefits li {
+  display: flex;
+  gap: 0.7rem;
+  align-items: center;
+  color: rgb(255 255 255 / 88%);
+  font-weight: 600;
+}
+
+.login-benefits li::before {
+  display: grid;
+  width: 1.55rem;
+  height: 1.55rem;
+  flex: 0 0 auto;
+  color: #073a64;
+  background: #77eee1;
+  border-radius: 50%;
+  content: "✓";
+  place-items: center;
+  font-size: 0.75rem;
+  font-weight: 900;
+}
+
+.login-introduction__footer {
+  margin: 0;
+  color: rgb(255 255 255 / 60%);
+  font-size: 0.75rem;
+}
+
+/* Login panel */
+
+.login-panel {
+  display: grid;
+  padding: clamp(1.5rem, 5vw, 4rem);
+  place-items: center;
+}
+
+.login-card {
+  width: min(100%, 28rem);
+  padding: clamp(1.5rem, 4vw, 2.3rem);
+  background: #fff;
+  border: 1px solid #dce5ed;
+  border-radius: 1.2rem;
+  box-shadow: 0 1.2rem 3rem rgb(30 60 90 / 13%);
+}
+
+.login-card__heading {
+  text-align: center;
+}
+
+.login-card__heading h2 {
+  margin: 1rem 0 0.45rem;
+  color: #123968;
+  font-size: 1.8rem;
+}
+
+.login-card__heading p {
+  margin: 0;
+  color: #687e91;
+  line-height: 1.5;
+}
+
+.bankid-logo {
+  display: inline-flex;
+  padding: 0.45rem 0.8rem;
+  color: #fff;
+  background: linear-gradient(135deg, #1592b5, #086b93);
+  border-radius: 0.55rem;
+  font-size: 0.85rem;
+  font-weight: 900;
+  letter-spacing: 0.03em;
+}
+
+.login-action,
+.login-progress,
+.login-result {
+  display: grid;
+  gap: 1rem;
+  min-height: 18rem;
+  padding-block: 2rem 1rem;
+  place-items: center;
+  align-content: center;
+  text-align: center;
+}
+
+.login-action p,
+.login-progress p,
+.login-result p {
+  margin: 0;
+  color: #687e91;
+  line-height: 1.5;
+}
+
+.login-security-icon {
+  display: grid;
+  width: 4rem;
+  height: 4rem;
+  color: #08785d;
+  background: #d9f7ed;
+  border-radius: 50%;
+  box-shadow: 0 0 0 0.6rem rgb(42 190 146 / 10%);
+  place-items: center;
+  font-size: 1.7rem;
+  font-weight: 900;
+}
+
+/* Buttons and links */
+
+.login-primary-button,
+.login-secondary-button,
+.login-launch-link {
+  display: inline-flex;
+  min-height: 2.9rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0.7rem 1.1rem;
+  border-radius: 0.6rem;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.login-primary-button {
+  width: 100%;
+  color: #fff;
+  background: linear-gradient(135deg, #087ca7, #7137db);
+  border: 0;
+  box-shadow: 0 0.5rem 1rem rgb(80 65 185 / 20%);
+}
+
+.login-primary-button:hover {
+  background: linear-gradient(135deg, #066b91, #6029c5);
+}
+
+.login-secondary-button {
+  color: #5d7082;
+  background: #fff;
+  border: 1px solid #cbd7e0;
+}
+
+.login-secondary-button:hover {
+  color: #b23462;
+  background: #fff4f7;
+  border-color: #e7aabd;
+}
+
+.login-launch-link {
+  color: #fff;
+  background: #087ca7;
+}
+
+/* QR and status */
+
+.login-qr {
+  width: min(100%, 13rem);
+  padding: 0.65rem;
+  background: #fff;
+  border: 1px solid #d5e0e8;
+  border-radius: 0.8rem;
+}
+
+.login-qr-help {
+  font-size: 0.85rem;
+}
+
+.login-message {
+  color: #344f67 !important;
+  font-weight: 700;
+}
+
+.login-spinner {
+  width: 3rem;
+  height: 3rem;
+  border: 0.3rem solid #dce9f0;
+  border-block-start-color: #7137db;
+  border-radius: 50%;
+  animation: login-spin 800ms linear infinite;
+}
+
+@keyframes login-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.login-result > span {
+  display: grid;
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  place-items: center;
+  font-size: 1.6rem;
+  font-weight: 900;
+}
+
+.login-result h3 {
+  margin: 0;
+  color: #17324d;
+}
+
+.login-result--success > span {
+  color: #08785d;
+  background: #d9f7ed;
+}
+
+.login-result--error > span {
+  color: #a52d48;
+  background: #ffe2e8;
+}
+
+.login-card__footer {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: center;
+  padding-block-start: 1rem;
+  color: #718496;
+  border-block-start: 1px solid #e3e9ee;
+  font-size: 0.72rem;
+  text-align: center;
+}
+
+/* Responsive */
+
+@media (max-width: 52rem) {
+  .login-page {
+    grid-template-columns: 1fr;
+  }
+
+  .login-introduction {
+    min-height: auto;
+    padding: 2rem 1.5rem;
+  }
+
+  .login-introduction__content {
+    margin-block: 3rem;
+  }
+
+  .login-introduction h1 {
+    font-size: clamp(2.2rem, 10vw, 3.5rem);
+  }
+
+  .login-panel {
+    padding: 2rem 1rem;
+  }
+}
+
+@media (max-width: 30rem) {
+  .login-introduction {
+    padding: 1.4rem 1rem;
+  }
+
+  .login-card {
+    padding: 1.25rem;
+  }
+
+  .login-action,
+  .login-progress,
+  .login-result {
+    min-height: 16rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-spinner {
+    animation-duration: 1600ms;
+  }
+}
