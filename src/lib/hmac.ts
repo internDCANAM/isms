@@ -35,5 +35,8 @@ export async function hmacHex(secret: string, message: string, key: HmacKey): Pr
     'HMAC',
     await importHmacKey(bytes.encode(secret), key),
     bytes.encode(message));
-  return new Uint8Array(sig).toHex();
+  return Array.from(
+    new Uint8Array(sig),
+    (byte) => byte.toString(16).padStart(2, '0')
+  ).join('');
 }
