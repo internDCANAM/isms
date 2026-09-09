@@ -1,0 +1,27 @@
+.title {
+  display: inline-grid;
+  gap: calc(var(--title-size) / 5);
+  justify-items: start;
+  cursor: default;
+}
+
+.title__word {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: var(--title-size);
+  line-height: 1;
+  letter-spacing: var(--track);
+  color: var(--color-text);
+  text-decoration-line: overline;
+  text-decoration-thickness: max(1px, calc(var(--title-size) / 22));
+}
+
+.title__descriptor {
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: calc(var(--title-size) / 3.6);
+  line-height: var(--line);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}

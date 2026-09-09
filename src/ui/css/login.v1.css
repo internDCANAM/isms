@@ -1,88 +1,143 @@
-/* temp index */
-.gradient {
-  width: 100%;
-  min-height: 0;
-  background: linear-gradient(to bottom,
-      var(--color-bg) 0%,
-      var(--color-bg) 0%,
-      var(--color-surface) 100%);
-  position: relative;
-  overflow: hidden;
-}
-
 .login {
   display: grid;
   flex: 1;
+  min-width: 0;
   min-height: 0;
   grid-template-columns:
-    [full-start] minmax(var(--space),
-      var(--tap)) [grid-start] repeat(12, minmax(0, 1fr)) [grid-end] minmax(var(--space),
-      var(--tap)) [full-end];
-  grid-template-rows: auto auto 1fr;
+    [full-start] var(--gutter)
+    [grid-start] repeat(12, minmax(0, 1fr))
+    [grid-end] var(--gutter) [full-end];
+  grid-template-rows: auto 1fr;
   column-gap: var(--space);
+  background: linear-gradient(to bottom, var(--color-bg), var(--color-surface));
+}
+
+.login > .title {
+  grid-column: 2 / -2;
+  align-self: start;
+  margin-block-start: var(--space);
+}
+
+.login__body {
+  grid-column: 2 / -2;
+  display: grid;
+  align-content: center;
+  justify-self: center;
+  width: min(100%, 24rem + 11vw);
+  min-width: 0;
+  min-height: 0;
+  gap: var(--space);
+  margin-block: var(--space);
 }
 
 .login__main {
-  grid-column: 5 / 11;
-  grid-row: 3;
-  align-self: center;
-  justify-self: center;
-  width: 100%;
-  max-width: 32rem;
-  margin-block: var(--tap);
-  padding: var(--space-lg);
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
-  box-shadow: 0rem 1rem 2rem -1rem var(--shadow);
+  min-width: 0;
+  padding: var(--space);
 }
 
 .bankid {
-  --qr-size: min(16rem, 100%);
-  --qr-ink: #1c1a16;
-  --qr-paper: #fff;
-}
-
-.bankid>[data-screen] {
-  display: none;
-}
-
-.bankid[data-phase='identify']>[data-screen='identify'],
-.bankid[data-phase='qr']>[data-screen='qr'],
-.bankid[data-phase='complete']>[data-screen='complete'],
-.bankid[data-phase='failed']>[data-screen='failed'] {
   display: grid;
+  min-width: 0;
+  gap: var(--space);
+}
+
+.login__intro,
+.login__access {
+  display: grid;
+  gap: 0.2em;
+  justify-items: start;
+  text-align: start;
+}
+
+.login__welcome {
+  font-family: var(--font-display);
+  font-size: var(--font-size-lg);
+  font-weight: 500;
+  line-height: var(--line-tight);
+}
+
+.login__continue,
+.login__access {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  line-height: var(--line);
+  text-wrap: pretty;
+}
+
+.login[data-viewport='wide'] .login__intro,
+.login[data-viewport='wide'] .login__access {
+  padding-inline: var(--space);
+}
+
+.login[data-viewport='wide'] .bankid > .note {
+  text-align: center;
 }
 
 .login_button {
-  width: var(--button-width);
-  max-width: 100%;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
   min-height: var(--tap);
-  font-family: var(--font-display);
-  font-size: 24px;
+  padding: calc(var(--space) / 2) var(--space);
+  font-family: var(--font-button);
+  font-size: var(--font-size-lg);
+  font-weight: 600;
   color: var(--color-text);
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-text);
   border-radius: 0;
+  text-decoration: none;
+  cursor: pointer;
 }
 
-.login_button:hover {
-  cursor: pointer;
-  background: var(--color-discrete);
+.login_button .bid {
+  justify-self: start;
+}
+
+.login_button > span {
+  min-width: 0;
+  justify-self: center;
+}
+
+.login_button:hover:enabled,
+a.login_button:hover {
+  color: var(--color-bg);
+  background: var(--color-text);
+}
+
+.login_button:focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .login_button {
+    transition: background-color 0.12s ease, color 0.12s ease;
+  }
+}
+
+.login_button:disabled {
+  opacity: 0.55;
+}
+
+[data-button='solid'] .login_button {
+  color: var(--color-bg);
+  background: var(--color-text);
+}
+
+.qr {
+  display: grid;
+  gap: calc(var(--space) / 2);
+  justify-items: center;
 }
 
 .button.frame.qr__code {
   width: var(--qr-size);
   max-width: 100%;
   aspect-ratio: 1;
-  height: auto;
-  padding: 0;
-  cursor: zoom-in;
+  overflow: hidden;
   color: var(--qr-ink);
   background: var(--qr-paper);
-}
-
-.identify {
-  padding: 0px 0px 20px;
 }
 
 .qr__code svg {
@@ -91,8 +146,16 @@
   height: auto;
 }
 
+.qr__extend {
+  grid-template-columns: 1fr;
+}
+
+.qr__remain,
+.bankid .note {
+  font-size: var(--font-size-sm);
+}
+
 .qr__remain {
-  margin: 0;
   color: var(--color-text-muted);
 }
 
@@ -102,39 +165,78 @@
   color: var(--color-text);
 }
 
-.qr__help {
-  color: var(--color-text-muted);
+.bankid .note {
+  text-wrap: balance;
 }
 
-.qr__help summary {
-  cursor: pointer;
-  text-align: center;
-  list-style: none;
-  text-decoration: underline;
-  text-underline-offset: 0.15em;
+.login[data-viewport='narrow'] {
+  grid-template-columns: [full-start] 0 [grid-start] 1fr [grid-end] 0 [full-end];
+  column-gap: 0;
 }
 
-.qr__help summary::-webkit-details-marker {
-  display: none;
+.login[data-viewport='narrow'] > .title {
+  padding-inline: var(--space);
 }
 
-.qr__help summary:focus-visible {
-  outline: 2px solid var(--color-text);
-  outline-offset: 2px;
+.login[data-viewport='narrow'] .login__body {
+  grid-column: 1 / -1;
+  grid-template-rows: 1fr auto;
+  justify-self: stretch;
+  gap: 0;
+  margin-block: 0;
 }
 
-.qr__help p {
-  margin-block-start: calc(var(--space) / 2);
+.login[data-viewport='narrow'] .login__dock {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  column-gap: var(--space);
+  align-self: end;
+  min-width: 0;
+  padding: var(--space);
 }
 
-@media (max-width: 40rem) {
-  .login {
-    grid-template-columns:
-      [full-start] var(--space) [grid-start] repeat(12, minmax(0, 1fr)) [grid-end] var(--space) [full-end];
-  }
+.login[data-viewport='narrow'] .login__dock-rule {
+  width: 1px;
+  background: var(--color-text);
+}
 
-  .login__main {
-    grid-column: grid;
-    padding: var(--space);
-  }
+.login[data-viewport='narrow'] .login__dock .login__access {
+  justify-items: end;
+  text-align: end;
+}
+
+.login[data-viewport='narrow'] .login__main {
+  padding: 0;
+  background: var(--color-bg);
+  border-block-start: 1px solid var(--color-border);
+}
+
+.login[data-viewport='narrow'] .bankid {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.login[data-viewport='narrow'] .login__dock .login__welcome,
+.login[data-viewport='narrow'] .login__dock .login__continue,
+.login[data-viewport='narrow'] .login__dock .login__access {
+  font-family: var(--font-button);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-tight);
+}
+
+.login[data-viewport='narrow'] .login__dock .login__welcome {
+  font-weight: 600;
+}
+
+.login[data-viewport='narrow'] .bankid > .stack {
+  padding: calc(var(--space) / 2) var(--space);
+}
+
+.login[data-viewport='narrow'] .bankid > .stack:last-child {
+  padding-block-end: calc(var(--space) / 2 + env(safe-area-inset-bottom, 0px));
+}
+
+.login[data-viewport='narrow'] .bankid > .note {
+  padding: 0 var(--space) calc(var(--space-lg) + env(safe-area-inset-bottom, 0px));
 }

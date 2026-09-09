@@ -1,46 +1,64 @@
 :root {
   color-scheme: light dark;
   --shadow: #0000003a;
+  --qr-ink: #1c1a16;
+  --qr-paper: #fff;
 }
 
-:root, [data-scheme='paper'] {
+:root, :root[data-scheme='paper'] {
   --color-bg:           #fcfbf8;
   --color-surface:      #f2efe9;
   --color-border:       #e6e1d7;
   --color-text:         #1c1a16;
-  --color-text-muted:   #6f6b64;
-  --color-discrete:     #fdfdfd; }
-[data-scheme='sea'] {
+  --color-text-muted:   #6f6b64; }
+:root[data-scheme='sea'] {
   --color-bg:           #eef3f3;
   --color-surface:      #fff;
   --color-border:       #c5d2d4;
   --color-text:         #183e4f;
   --color-text-muted:   #4e6a73; }
-[data-scheme='stone'] {
+:root[data-scheme='stone'] {
   --color-bg:           #f4f4f2;
   --color-surface:      #ebebe6;
   --color-border:       #d0d0c8;
   --color-text:         #1a1a18;
   --color-text-muted:   #5c5c56; }
+:root[data-scheme='ink'] {
+  --color-bg:           #161410;
+  --color-surface:      #1c1a16;
+  --color-border:       #3a362f;
+  --color-text:         #f2efe9;
+  --color-text-muted:   #a39e94; }
+:root[data-scheme='clay'] {
+  --color-bg:           #fbf7f4;
+  --color-surface:      #f4e9e2;
+  --color-border:       #ece0d8;
+  --color-text:         #2a1f18;
+  --color-text-muted:   #8a6a55; }
 
 @media (prefers-color-scheme: dark) { :root,
-  [data-scheme='paper'] {
+  :root[data-scheme='paper'] {
     --color-bg:         #161410;
     --color-surface:    #1c1a16;
     --color-border:     #3a362f;
     --color-text:       #f2efe9;
-    --color-text-muted: #a39e94;
-    --color-discrete:   #161511; }
-  [data-scheme='sea'] {
+    --color-text-muted: #a39e94; }
+  :root[data-scheme='sea'] {
     --color-bg:         #0c181c;
     --color-surface:    #122830;
     --color-border:     #2a4a54;
     --color-text:       #eef3f3;
     --color-text-muted: #8aa3aa; }
-  [data-scheme='stone'] {
+  :root[data-scheme='stone'] {
     --color-bg:         #141413;
     --color-surface:    #1f1f1d;
     --color-border:     #3a3a36;
     --color-text:       #f4f4f2;
     --color-text-muted: #9a9a92; }
+  :root[data-scheme='clay'] {
+    --color-bg:         #17110d;
+    --color-surface:    #1f1712;
+    --color-border:     #3a2b21;
+    --color-text:       #f4e9e2;
+    --color-text-muted: #b09182; }
 }

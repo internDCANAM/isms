@@ -1,0 +1,12 @@
+.bid {
+  display: grid;
+  place-items: center;
+  block-size: var(--bid-size);
+  padding-inline: calc(var(--bid-size) / 6);
+  border: 1px solid currentColor;
+  font-family: var(--font-mono);
+  font-size: calc(var(--bid-size) / 2.9);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: var(--track);
+}

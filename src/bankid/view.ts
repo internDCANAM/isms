@@ -46,19 +46,27 @@ export function failedMessage(hint: FailedHintCode | undefined): Rfa | undefined
 }
 
 export interface LoginView {
-  phase:   LoginState['phase'];
-  message: Rfa    | undefined;
-  code:    string | undefined;
-  launch:  string | undefined;
-  name:    string | undefined;
-}
+  phase:       LoginState['phase'];
+  message:     Rfa     | undefined;
+  code:        string  | undefined;
+  launch:      string  | undefined;
+  name:        string  | undefined;
+  expiresInMs: number  | undefined;
+  extendable:  boolean;
+};
 
 const empty = {
-  message: undefined,
-  code:    undefined,
-  launch:  undefined,
-  name:    undefined,
+  message:     undefined,
+  code:        undefined,
+  launch:      undefined,
+  name:        undefined,
+  expiresInMs: undefined,
+  extendable:  false,
 };
+
+export function failedView(message: Rfa): LoginView {
+  return {...empty, phase: loginPhase.failed, message};
+}
 
 export function loginView(state: LoginState): LoginView {
   switch (state.phase) {
@@ -66,15 +74,17 @@ export function loginView(state: LoginState): LoginView {
       return {...empty, phase: state.phase, message: rfa.rfa13};
     case loginPhase.qr:
       return {
-        phase:   state.phase,
-        message: pendingMessage(state.hint) ?? rfa.rfa21,
-        code:    qrSvg(state.payload, qrSvgDefaults),
-        launch:  autoStartUrl(state.autoStartToken),
-        name:    undefined,
+        phase:       state.phase,
+        message:     pendingMessage(state.hint) ?? rfa.rfa21,
+        code:        qrSvg(state.payload, qrSvgDefaults),
+        launch:      autoStartUrl(state.autoStartToken),
+        name:        undefined,
+        expiresInMs: state.expiresInMs,
+        extendable:  state.extendable,
       };
     case loginPhase.complete:
       return {...empty, phase: state.phase, name: state.completion.user.name};
     case loginPhase.failed:
-      return {...empty, phase: state.phase, message: failedMessage(state.hint) ?? rfa.rfa22};
+      return failedView(failedMessage(state.hint) ?? rfa.rfa22);
   }
 }

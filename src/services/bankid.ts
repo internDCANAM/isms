@@ -1,7 +1,7 @@
 import {randomUUID} from 'node:crypto';
 import {bankIdCadence, login} from '../bankid/flow.js';
 import {loginPhase} from '../bankid/protocol.js';
-import {loginView, rfa} from '../bankid/view.js';
+import {failedView, loginView, rfa} from '../bankid/view.js';
 import {systemClock} from '../lib/clock.js';
 import type {AuthRequest} from '../bankid/protocol.js';
 import type {BankIdClient} from '../bankid/client.js';
@@ -20,21 +20,8 @@ export interface BankIdService {
   cancel(orderRef: string):    void;
 }
 
-const unknownUser: LoginView = {
-  phase: loginPhase.failed,
-  message: rfa.noAccount,
-  code: undefined,
-  launch: undefined,
-  name: undefined,
-};
-
-const rpFailed: LoginView = {
-  phase: loginPhase.failed,
-  message: rfa.rfa22,
-  code: undefined,
-  launch: undefined,
-  name: undefined,
-};
+const unknownUser = failedView(rfa.noAccount);
+const rpFailed = failedView(rfa.rfa22);
 
 interface Order {
   states: AsyncGenerator<LoginState, void, void>;

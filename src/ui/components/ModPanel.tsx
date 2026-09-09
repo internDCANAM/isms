@@ -2,15 +2,17 @@ import {useEffect, useState} from 'react';
 import {armKind} from '../../api/mod.js';
 import {postJson} from '../links.js';
 import type {ModArmComplete, ModUser} from '../../api/mod.js';
+import {Settings} from '@nine-thirty-five/material-symbols-react/outlined/400';
 
 const MOD = '/mod';
 const OPEN_KEY = 'mod:open';
 
 const appearance = {
-  scheme: ['paper', 'sea', 'stone'],
+  scheme: ['paper', 'sea', 'stone', 'ink', 'clay'],
   font:   ['sans', 'serif'],
   size:   ['sm', 'lg'],
   layout: ['wide', 'narrow'],
+  button: ['quiet', 'solid'],
 } as const;
 type AppearanceKey = keyof typeof appearance;
 
@@ -32,6 +34,7 @@ export function ModPanel() {
     font:   readAttr('font'),
     size:   readAttr('size'),
     layout: readAttr('layout'),
+    button: readAttr('button'),
   });
 
   useEffect(() => {
@@ -82,8 +85,9 @@ export function ModPanel() {
 
   return (
     <div className="mod">
-      <button className="mod__toggle" type="button" onClick={toggle}>
-        {open ? 'Close sandbox' : 'Sandbox'}
+      <button className="mod__toggle" type="button" onClick={toggle}
+        aria-expanded={open} aria-label={open ? 'Close sandbox' : 'Open sandbox'}>
+        <Settings size={24}/>
       </button>
       {open && (
         <aside className="mod__panel">

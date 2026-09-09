@@ -34,7 +34,6 @@ function App() {
   }, []);
   return (
     <>
-      {/* <Header /> */}
       <div className="app__main">
         <Routes>
           <Route path="/login" element={<LoginPage />} />
@@ -60,7 +59,6 @@ function App() {
           <ModPanel />
         </Suspense>
       )}
-      {/* <Footer /> */}
     </>
   );
 }

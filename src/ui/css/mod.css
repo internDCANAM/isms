@@ -1,8 +1,8 @@
 .mod {
   position: fixed;
   z-index: 20;
-  right: var(--space);
-  bottom: var(--space);
+  right: 4px;
+  bottom: 0;
   display: grid;
   gap: calc(var(--space) / 2);
   justify-items: end;
@@ -12,17 +12,15 @@
 .mod__panel button,
 .mod__field select {
   font-family: var(--font-ui);
-  font-size: 0.875rem;
   color: var(--color-text);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background: none;
+  border: 0;
   min-height: 2rem;
 }
 
 .mod__toggle,
 .mod__panel button {
   cursor: pointer;
-  padding: 0.25rem 0.75rem;
 }
 
 .mod__panel {
@@ -36,9 +34,8 @@
 }
 
 .mod__label {
-  margin: 0;
-  font-size: 0.75rem;
-  letter-spacing: 0.04em;
+  font-size: var(--font-size-sm);
+  letter-spacing: var(--track);
   text-transform: uppercase;
   color: var(--color-text-muted);
   text-align: start;
@@ -49,7 +46,7 @@
   grid-template-columns: 4.5rem 1fr;
   gap: calc(var(--space) / 2);
   align-items: center;
-  font-size: 0.875rem;
+  font-size: var(--font-size-sm);
   text-align: start;
   color: var(--color-text-muted);
 }
