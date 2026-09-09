@@ -15,10 +15,8 @@ export function Nav() {
     <header className="app-header">
       <div className="app-header__content">
         <NavLink to="/" className="app-brand">
-          <span className="app-brand__mark">S</span>
-
           <span>
-            <strong>Sprinta ISMS</strong>
+            <strong>ISMS</strong>
             <small>Information security</small>
           </span>
         </NavLink>

@@ -1,6 +1,7 @@
 import {Link, useParams} from 'react-router-dom';
 import {NonconformityState, Theme} from '../../domain.js';
 import '../css/nonconformity-detail.css';
+import {ArrowBack} from '@nine-thirty-five/material-symbols-react/outlined/400';
 
 interface CorrectiveAction {
   id: string;
@@ -104,7 +105,7 @@ export function NonconformityDetailPage() {
     return (
       <main className="nc-detail-page">
         <Link className="nc-back-link" to="/nonconformities">
-          ← Back to Nonconformities
+          <ArrowBack /> Back to Nonconformities
         </Link>
 
         <section className="nc-detail-empty">
@@ -121,7 +122,7 @@ export function NonconformityDetailPage() {
   return (
     <main className="nc-detail-page">
       <Link className="nc-back-link" to="/nonconformities">
-        ← Back to Nonconformities
+        <ArrowBack /> Back to Nonconformities
       </Link>
 
       <header className="nc-detail-header">

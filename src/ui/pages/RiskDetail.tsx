@@ -1,6 +1,7 @@
 import {Link, useParams} from 'react-router-dom';
 import {AssessmentPhase, RiskLevel, Theme, TreatmentOption} from '../../domain.js';
 import '../css/risk-detail.css';
+import {ArrowBack} from '@nine-thirty-five/material-symbols-react/outlined/400';
 
 interface Assessment {
   phase: AssessmentPhase;
@@ -209,7 +210,7 @@ export function RiskDetailPage() {
     return (
       <main className="risk-detail-page">
         <Link className="back-link" to="/risks">
-          ← Back to Risk Register
+          <ArrowBack /> Back to Risk Register
         </Link>
 
         <section className="detail-empty">
@@ -225,7 +226,7 @@ export function RiskDetailPage() {
   return (
     <main className="risk-detail-page">
       <Link className="back-link" to="/risks">
-        ← Back to Risk Register
+        <ArrowBack /> Back to Risk Register
       </Link>
 
       <header className="detail-header">

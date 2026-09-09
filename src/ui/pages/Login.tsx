@@ -1,6 +1,7 @@
 import {useEffect, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import '../css/login.css';
+import {Check, Lock} from '@nine-thirty-five/material-symbols-react/outlined/400';
 
 interface LoginView {
   message: string | undefined;
@@ -157,9 +158,8 @@ export function LoginPage() {
     <main className="login-page">
       <section className="login-introduction">
         <div className="login-brand">
-          <span className="login-brand__mark">S</span>
           <span>
-            <strong>Sprinta ISMS</strong>
+            <strong>ISMS</strong>
             <small>Information Security Management</small>
           </span>
         </div>
@@ -189,13 +189,13 @@ export function LoginPage() {
           <div className="login-card__heading">
             <span className="bankid-logo">BankID</span>
             <h2>Sign in</h2>
-            <p>Use Mobile BankID to continue to Sprinta ISMS.</p>
+            <p>Use Mobile BankID to continue to ISMS.</p>
           </div>
 
           {stage === 'idle' && (
             <div className="login-action">
-              <div className="login-security-icon" aria-hidden="true">
-                ✓
+              <div className="login-security-icon">
+                <Check/>
               </div>
 
               <p>
@@ -260,7 +260,7 @@ export function LoginPage() {
 
           {stage === 'success' && (
             <div className="login-result login-result--success" role="status">
-              <span>✓</span>
+              <span><Check/></span>
               <h3>Welcome, {view?.name}</h3>
               <p>BankID verification completed. Opening the dashboard…</p>
             </div>
@@ -283,7 +283,7 @@ export function LoginPage() {
           )}
 
           <footer className="login-card__footer">
-            <span>🔒</span>
+            <span><Lock size={16}/></span>
             <span>Your login is encrypted and protected by BankID.</span>
           </footer>
         </div>

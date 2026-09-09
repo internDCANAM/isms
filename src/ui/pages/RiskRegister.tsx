@@ -2,6 +2,7 @@ import {useMemo, useState} from 'react';
 import {Link} from 'react-router-dom';
 import {RiskLevel, Theme} from '../../domain.js';
 import '../css/risk-register.css';
+import {ArrowForward} from '@nine-thirty-five/material-symbols-react/outlined/400';
 
 interface RiskRow {
   id: string;
@@ -293,7 +294,7 @@ export function RiskRegisterPage() {
                         to={`/risks/${risk.id}`}
                         aria-label={`Open ${risk.reference}`}
                       >
-                        →
+                        <ArrowForward />
                       </Link>
                     </td>
                   </tr>
