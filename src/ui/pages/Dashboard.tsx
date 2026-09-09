@@ -1,5 +1,6 @@
 import {Link} from 'react-router-dom';
 import '../css/dashboard.css';
+import {ArrowForward} from '@nine-thirty-five/material-symbols-react/outlined/400';
 
 const modules = [
   {
@@ -102,7 +103,7 @@ export function DashboardPage() {
               <strong>{module.count}</strong>
               <p>{module.description}</p>
               <small>{module.detail}</small>
-              <span className="dashboard-module__open">Open →</span>
+              <span className="dashboard-module__open">Open <ArrowForward /></span>
             </Link>
           ))}
         </div>
@@ -124,7 +125,7 @@ export function DashboardPage() {
                 <strong>Critical risk</strong>
                 <small>Requires immediate treatment</small>
               </span>
-              <span>→</span>
+              <ArrowForward />
             </Link>
 
             <Link to="/nonconformities" className="dashboard-attention__item">
@@ -133,7 +134,7 @@ export function DashboardPage() {
                 <strong>Open nonconformities</strong>
                 <small>Corrective actions are pending</small>
               </span>
-              <span>→</span>
+              <ArrowForward />
             </Link>
 
             <Link to="/documents" className="dashboard-attention__item">
@@ -142,7 +143,7 @@ export function DashboardPage() {
                 <strong>Document in review</strong>
                 <small>Waiting for approval</small>
               </span>
-              <span>→</span>
+              <ArrowForward />
             </Link>
           </div>
         </section>

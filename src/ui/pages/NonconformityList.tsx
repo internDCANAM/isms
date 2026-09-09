@@ -2,6 +2,7 @@ import {useMemo, useState} from 'react';
 import {Link} from 'react-router-dom';
 import {NonconformityState, Theme} from '../../domain.js';
 import '../css/nonconformity-list.css';
+import {ArrowForward} from '@nine-thirty-five/material-symbols-react/outlined/400';
 
 interface NonconformityRow {
   id: string;
@@ -339,7 +340,7 @@ export function NonconformityListPage() {
                         to={`/nonconformities/${item.id}`}
                         aria-label={`Open ${item.reference}`}
                       >
-                        →
+                        <ArrowForward />
                       </Link>
                     </td>
                   </tr>
